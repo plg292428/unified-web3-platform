@@ -1,0 +1,92 @@
+# Build outputs
+bin/
+obj/
+dist/
+build/
+*.dll
+*.exe
+*.pdb
+
+# Dependencies
+node_modules/
+packages/
+.npm
+.yarn
+
+# Environment files
+.env
+.env.local
+.env.production.local
+.env.development.local
+*.env
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.cache
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Production builds
+dist/
+build/
+out/
+
+# SSL certificates
+*.pfx
+*.key
+*.crt
+*.pem
+
+# Sensitive files
+appsettings.Production.json
+appsettings.Development.json
+*.secrets.json
+
+# Migration files (keep structure but ignore generated)
+# Migrations/ - commented out to keep migration files
+
+# Project specific
+ip2region.xdb
+生成的密钥和密码.txt
+*.txt
+!README.txt
+
+# Cloudflare
+.cache/
+.wrangler/
+
+# Local configuration
+launchSettings.json.local
+

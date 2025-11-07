@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Authors>PsssssssHao</Authors>
+    <Company>PsssssssHao</Company>
+    <Description>Asp .Net Core 常用工具集</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IP2Region.Net" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HFastKit.AspNetCore.Shared\HFastKit.AspNetCore.Shared.csproj" />
+    <ProjectReference Include="..\HFastKit\HFastKit.csproj" />
+  </ItemGroup>
+
+</Project>

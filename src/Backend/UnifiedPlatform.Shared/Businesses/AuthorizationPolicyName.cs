@@ -1,0 +1,43 @@
+﻿namespace SmallTarget.Shared
+{
+    /// <summary>
+    /// 身份验证策略名
+    /// </summary>
+    public static class AuthorizationPolicyName
+    {
+        /// <summary>
+        /// 任意
+        /// </summary>
+        public const string Any = "Any";
+
+        /// <summary>
+        /// Dapp 用户
+        /// </summary>
+        public const string DappUser = "DappUser";
+
+        /// <summary>
+        /// 员工
+        /// </summary>
+        public const string Manager = "Manager";
+
+        /// <summary>
+        /// 组长
+        /// </summary>
+        public const string GroupLeader = "GroupLeader";
+
+        /// <summary>
+        /// 代理
+        /// </summary>
+        public const string Agent = "Agent";
+
+        /// <summary>
+        /// 管理员
+        /// </summary>
+        public const string Administrator = "Administrator";
+
+        /// <summary>
+        /// 开发人员
+        /// </summary>
+        public const string Developer = "Developer";
+    }
+}

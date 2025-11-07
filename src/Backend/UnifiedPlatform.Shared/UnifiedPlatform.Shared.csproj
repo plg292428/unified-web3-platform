@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\HFastKit\HFastKit\HFastKit.csproj" />
+    <ProjectReference Include="..\..\Libraries\HFastKit\HFastKit.AspNetCore.Shared\HFastKit.AspNetCore.Shared.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

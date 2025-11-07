@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Authors></Authors>
+    <Version></Version>
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageTags></PackageTags>
+    <Company></Company>
+    <Description></Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/stoway/Ntron</RepositoryUrl>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Nblockchain.Signer\Nblockchain.Signer.csproj" />
+    <ProjectReference Include="..\Nblockchain.Tron.Protocol\Nblockchain.Tron.Protocol.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Authors>PsssssssHao</Authors>
+    <Company>PsssssssHao</Company>
+    <Description>.Net Core 常用工具集</Description>
+  </PropertyGroup>
+	
+</Project>
