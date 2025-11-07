@@ -1,0 +1,4 @@
+{
+  "developmentBaseUrl": "http://localhost:5195",
+  "productionBaseUrl": "https://api.layer2farming.ai"
+}

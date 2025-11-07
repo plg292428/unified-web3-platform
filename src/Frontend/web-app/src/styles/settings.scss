@@ -1,0 +1,26 @@
+/**
+ * src/styles/settings.scss
+ *
+ * Configures SASS variables and Vuetify overwrites
+ */
+
+$custom-family-lucas: 'Noto Sans SC', sans-serif;
+
+// https://vuetifyjs.com/features/sass-variables/`
+@use 'vuetify/settings' with (
+  $body-font-family: $custom-family-lucas
+);
+
+.green-manifesto-bg {
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)),
+    linear-gradient(91.88deg, #0070c0 -22.71%, #00993d 111.33%);
+}
+
+.primary-manifesto-bg {
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)),
+    linear-gradient(91.88deg, #6e38cc -22.71%, #2f1a52 111.33%);
+}
+
+.primary-border {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

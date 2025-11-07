@@ -1,0 +1,42 @@
+{
+  "name": "small-target",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "@fontsource/noto-sans-sc": "^5.0.18",
+    "@mdi/font": "7.4.47",
+    "@metamask/detect-provider": "^2.0.0",
+    "@vueuse/core": "^10.9.0",
+    "axios": "^1.6.7",
+    "core-js": "^3.36.0",
+    "ethers": "^6.11.1",
+    "pinia": "^2.1.7",
+    "tronweb": "^6.1.0",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0",
+    "vuetify": "^3.5.8",
+    "vuetify-use-dialog": "^0.6.9",
+    "webfontloader": "^1.6.28"
+  },
+  "devDependencies": {
+    "@babel/types": "^7.24.0",
+    "@types/node": "^20.11.25",
+    "@types/webfontloader": "^1.6.38",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/eslint-config-typescript": "^13.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.22.0",
+    "sass": "^1.71.1",
+    "terser": "^5.44.1",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.6",
+    "vite-plugin-vuetify": "^2.0.3",
+    "vue-tsc": "^2.0.6"
+  }
+}
