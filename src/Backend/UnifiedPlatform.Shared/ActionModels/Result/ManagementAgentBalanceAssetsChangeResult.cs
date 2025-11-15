@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端代理账变响应数据
@@ -61,3 +61,4 @@
         public DateTime CreateTime { get; set; }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿namespace HFastKit.AspNetCore.Services.Jwt
+namespace HFastKit.AspNetCore.Services.Jwt
 {
     /// <summary>
     /// Jwt配置

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class ChainTokenConfig
 {
@@ -70,3 +70,4 @@ public partial class ChainTokenConfig
 
     public virtual ICollection<UserChainTransaction> UserChainTransactions { get; set; } = new List<UserChainTransaction>();
 }
+

@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 创建员工请求模型
@@ -29,3 +29,4 @@
         public int? AttributionManagerUid { get; set; }
     }
 }
+

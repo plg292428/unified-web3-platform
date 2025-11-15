@@ -1,4 +1,4 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 

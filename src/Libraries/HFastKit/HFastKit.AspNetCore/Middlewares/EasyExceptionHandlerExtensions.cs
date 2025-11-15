@@ -1,4 +1,4 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 using HFastKit.AspNetCore.Shared.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -30,3 +30,4 @@ namespace HFastKit.AspNetCore.Middlewares
         });
     }
 }
+

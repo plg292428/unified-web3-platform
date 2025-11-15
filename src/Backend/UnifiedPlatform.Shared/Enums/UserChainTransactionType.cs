@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 链交易类型
@@ -26,3 +26,4 @@ namespace SmallTarget.Shared
         ToChain = 200,
     }
 }
+

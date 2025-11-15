@@ -1,15 +1,15 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using SmallTarget.DbService.Entities;
-using SmallTarget.Shared;
+using UnifiedPlatform.DbService.Entities;
+using UnifiedPlatform.Shared;
 using System.Security.Claims;
 
-namespace SmallTarget.WebApi.Filters
+namespace UnifiedPlatform.WebApi.Filters
 {
     /// <summary>
     /// 用户授权过滤器
@@ -151,3 +151,4 @@ namespace SmallTarget.WebApi.Filters
         }
     }
 }
+

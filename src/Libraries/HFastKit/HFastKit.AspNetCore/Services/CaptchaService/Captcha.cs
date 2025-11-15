@@ -1,4 +1,4 @@
-﻿using HFastKit.Extensions;
+using HFastKit.Extensions;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;

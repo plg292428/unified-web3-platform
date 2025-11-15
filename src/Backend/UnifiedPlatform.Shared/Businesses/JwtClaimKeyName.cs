@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// Jwt Claim 键名称
@@ -20,3 +20,4 @@
         public const string RequestUserTypeName = "RequestUserTypeName";
     }
 }
+

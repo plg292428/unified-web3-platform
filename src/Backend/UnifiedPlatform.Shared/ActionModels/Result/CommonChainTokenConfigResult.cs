@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 区块链代币配置响应数据
@@ -46,3 +46,4 @@
         public int Decimals { get; set;}
     }
 }
+

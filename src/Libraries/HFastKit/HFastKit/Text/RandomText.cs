@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace HFastKit.Text
 {
@@ -73,3 +73,4 @@ namespace HFastKit.Text
         }
     }
 }
+

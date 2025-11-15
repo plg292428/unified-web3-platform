@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端修改密码请求
@@ -22,3 +22,4 @@
         public required string NewPassword { get; set; }
     }
 }
+

@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 区块链交易状态
@@ -38,3 +38,4 @@ namespace SmallTarget.Shared
         Succeed = 200,
     }
 }
+

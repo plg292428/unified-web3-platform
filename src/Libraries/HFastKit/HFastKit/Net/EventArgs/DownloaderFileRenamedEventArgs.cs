@@ -1,4 +1,4 @@
-﻿namespace HFastKit.Net;
+namespace HFastKit.Net;
 
 /// <summary>
 /// Easy Downloader 重命名事件参数
@@ -26,3 +26,4 @@ public class DownloaderFileRenamedEventArgs : EventArgs
         NewFileName = newFileName;
     }
 }
+

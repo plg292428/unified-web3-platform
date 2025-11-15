@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace HFastKit.Extensions;
@@ -239,3 +239,4 @@ public static class StringExtensions
         return result;
     }
 }
+

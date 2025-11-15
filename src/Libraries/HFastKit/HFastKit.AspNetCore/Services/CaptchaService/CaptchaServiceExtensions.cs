@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HFastKit.AspNetCore.Services.Captcha
 {
@@ -17,3 +17,4 @@ namespace HFastKit.AspNetCore.Services.Captcha
         }
     }
 }
+

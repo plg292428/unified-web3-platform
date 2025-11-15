@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using SmallTarget.DbService.Entities;
+using UnifiedPlatform.DbService.Entities;
 
 #nullable disable
 
@@ -22,7 +22,7 @@ namespace UnifiedPlatform.DbService.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ChainNetworkConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", b =>
                 {
                     b.Property<int>("ChainId")
                         .HasColumnType("int")
@@ -140,7 +140,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ChainNetworkConfig", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ChainTokenConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ChainTokenConfig", b =>
                 {
                     b.Property<int>("TokenId")
                         .HasColumnType("int")
@@ -211,7 +211,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ChainTokenConfig", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ChainWalletConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ChainWalletConfig", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -278,7 +278,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ChainWalletConfig", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.GlobalConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.GlobalConfig", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -362,7 +362,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("GlobalConfig", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.Manager", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Manager", b =>
                 {
                     b.Property<int>("Uid")
                         .ValueGeneratedOnAdd()
@@ -476,7 +476,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("Manager", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerAiTradingActivationCode", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerAiTradingActivationCode", b =>
                 {
                     b.Property<Guid>("ActivationCodeGuid")
                         .HasColumnType("uniqueidentifier")
@@ -519,7 +519,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ManagerAiTradingActivationCode", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerBalanceChange", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerBalanceChange", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -573,7 +573,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ManagerBalanceChange", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerLoginLog", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerLoginLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -618,7 +618,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ManagerLoginLog", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerOperationLog", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerOperationLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -672,7 +672,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ManagerOperationLog", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerTransferFromUserOrder", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerTransferFromUserOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -759,7 +759,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ManagerTransferFromUserOrder", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerTypeConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerTypeConfig", b =>
                 {
                     b.Property<int>("ManagerType")
                         .HasColumnType("int")
@@ -784,7 +784,693 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("ManagerTypeConfig", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.User", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Order", b =>
+                {
+                    b.Property<long>("OrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("订单ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("OrderId"));
+
+                    b.Property<DateTime?>("CancelTime")
+                        .HasColumnType("datetime")
+                        .HasComment("取消时间");
+
+                    b.Property<int?>("ChainId")
+                        .HasColumnType("int")
+                        .HasComment("链ID");
+
+                    b.Property<int?>("ChainNetworkConfigChainId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompleteTime")
+                        .HasColumnType("datetime")
+                        .HasComment("完成时间");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("创建时间");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasDefaultValue("USDT")
+                        .HasComment("币种");
+
+                    b.Property<string>("OrderNumber")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasComment("订单编号");
+
+                    b.Property<DateTime?>("PaidTime")
+                        .HasColumnType("datetime")
+                        .HasComment("支付时间");
+
+                    b.Property<int?>("PaymentConfirmations")
+                        .HasColumnType("int")
+                        .HasComment("确认数");
+
+                    b.Property<DateTime?>("PaymentConfirmedTime")
+                        .HasColumnType("datetime")
+                        .HasComment("确认完成时间");
+
+                    b.Property<DateTime?>("PaymentExpiresAt")
+                        .HasColumnType("datetime")
+                        .HasComment("支付过期时间");
+
+                    b.Property<string>("PaymentFailureReason")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)")
+                        .HasComment("失败原因");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasComment("支付方式");
+
+                    b.Property<int>("PaymentMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("支付模式");
+
+                    b.Property<string>("PaymentProviderName")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasComment("支付渠道名称");
+
+                    b.Property<string>("PaymentProviderType")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasComment("支付渠道类型");
+
+                    b.Property<string>("PaymentSignaturePayload")
+                        .HasColumnType("nvarchar(max)")
+                        .HasComment("签名原文");
+
+                    b.Property<string>("PaymentSignatureResult")
+                        .HasColumnType("nvarchar(max)")
+                        .HasComment("签名结果");
+
+                    b.Property<int>("PaymentStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("支付状态");
+
+                    b.Property<DateTime?>("PaymentSubmittedTime")
+                        .HasColumnType("datetime")
+                        .HasComment("提交支付时间");
+
+                    b.Property<string>("PaymentTransactionHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasComment("链上交易哈希");
+
+                    b.Property<string>("PaymentWalletAddress")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasComment("支付钱包地址");
+
+                    b.Property<string>("PaymentWalletLabel")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasComment("钱包标签");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)")
+                        .HasComment("备注");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasComment("订单状态");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(19,6)")
+                        .HasComment("订单金额");
+
+                    b.Property<int>("Uid")
+                        .HasColumnType("int")
+                        .HasComment("用户ID");
+
+                    b.Property<int?>("UserUid")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrderId")
+                        .HasName("PK_Order_OrderId");
+
+                    b.HasIndex("ChainId");
+
+                    b.HasIndex("ChainNetworkConfigChainId");
+
+                    b.HasIndex("OrderNumber")
+                        .IsUnique();
+
+                    b.HasIndex("Uid");
+
+                    b.HasIndex("UserUid");
+
+                    b.ToTable("Orders", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.OrderItem", b =>
+                {
+                    b.Property<long>("OrderItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("订单商品ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("OrderItemId"));
+
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint")
+                        .HasComment("订单ID");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasComment("商品ID");
+
+                    b.Property<long?>("ProductId1")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasComment("商品名称");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int")
+                        .HasComment("数量");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(19,6)")
+                        .HasComment("小计");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(19,6)")
+                        .HasComment("单价");
+
+                    b.HasKey("OrderItemId")
+                        .HasName("PK_OrderItem_OrderItemId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductId1");
+
+                    b.ToTable("OrderItems", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.OrderPaymentLog", b =>
+                {
+                    b.Property<long>("OrderPaymentLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("支付日志ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("OrderPaymentLogId"));
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("记录时间");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValue("status_change")
+                        .HasComment("事件类型");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)")
+                        .HasComment("记录描述");
+
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint")
+                        .HasComment("订单ID");
+
+                    b.Property<int>("PaymentStatus")
+                        .HasColumnType("int")
+                        .HasComment("支付状态");
+
+                    b.Property<string>("RawData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasComment("原始数据");
+
+                    b.HasKey("OrderPaymentLogId")
+                        .HasName("PK_OrderPaymentLog_OrderPaymentLogId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderPaymentLogs", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Product", b =>
+                {
+                    b.Property<long>("ProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("商品ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ProductId"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int")
+                        .HasComment("分类ID");
+
+                    b.Property<int?>("ChainId")
+                        .HasColumnType("int")
+                        .HasComment("结算链ID");
+
+                    b.Property<int?>("ChainNetworkConfigChainId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("创建时间");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)")
+                        .HasDefaultValue("USDT")
+                        .HasComment("币种");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)")
+                        .HasComment("商品描述");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit")
+                        .HasComment("是否上架");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasComment("商品名称");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(19,6)")
+                        .HasComment("销售价格");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasComment("库存单位");
+
+                    b.Property<string>("Subtitle")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasComment("副标题");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)")
+                        .HasComment("缩略图");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("更新时间");
+
+                    b.HasKey("ProductId")
+                        .HasName("PK_Product_ProductId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ChainId");
+
+                    b.HasIndex("ChainNetworkConfigChainId");
+
+                    b.ToTable("Product", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductCategory", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasComment("分类ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("创建时间");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)")
+                        .HasComment("分类描述");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasComment("是否启用");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasComment("分类名称");
+
+                    b.Property<int?>("ParentCategoryId")
+                        .HasColumnType("int")
+                        .HasComment("父级分类ID");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasComment("分类别名");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("排序");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("更新时间");
+
+                    b.HasKey("CategoryId")
+                        .HasName("PK_ProductCategory_CategoryId");
+
+                    b.HasIndex("ParentCategoryId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
+
+                    b.ToTable("ProductCategory", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductImage", b =>
+                {
+                    b.Property<long>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("图片ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ImageId"));
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("创建时间");
+
+                    b.Property<string>("ImageType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("gallery")
+                        .HasComment("图片类型");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)")
+                        .HasComment("图片URL");
+
+                    b.Property<bool>("IsPrimary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasComment("是否为主图");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasComment("商品ID");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("排序顺序");
+
+                    b.HasKey("ImageId")
+                        .HasName("PK_ProductImage_ImageId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductImages", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductInventory", b =>
+                {
+                    b.Property<long>("InventoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("库存ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("InventoryId"));
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasComment("商品ID");
+
+                    b.Property<int>("QuantityAvailable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("可用库存");
+
+                    b.Property<int>("QuantityReserved")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("预留库存");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("更新时间");
+
+                    b.HasKey("InventoryId")
+                        .HasName("PK_ProductInventory_InventoryId");
+
+                    b.HasIndex("ProductId")
+                        .IsUnique();
+
+                    b.ToTable("ProductInventory", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductReview", b =>
+                {
+                    b.Property<long>("ReviewId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("评价ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ReviewId"));
+
+                    b.Property<string>("Content")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasComment("评价内容");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("创建时间");
+
+                    b.Property<bool>("IsApproved")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasComment("是否已审核");
+
+                    b.Property<bool>("IsVisible")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasComment("是否显示");
+
+                    b.Property<long?>("OrderId")
+                        .HasColumnType("bigint")
+                        .HasComment("订单ID");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasComment("商品ID");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int")
+                        .HasComment("评分（1-5星）");
+
+                    b.Property<int>("Uid")
+                        .HasColumnType("int")
+                        .HasComment("用户ID");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("更新时间");
+
+                    b.HasKey("ReviewId")
+                        .HasName("PK_ProductReview_ReviewId");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("Uid");
+
+                    b.ToTable("ProductReviews", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductSpecification", b =>
+                {
+                    b.Property<long>("SpecificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("规格ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SpecificationId"));
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("创建时间");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasComment("是否启用");
+
+                    b.Property<decimal>("PriceAdjustment")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(19,6)")
+                        .HasDefaultValue(0m)
+                        .HasComment("价格调整");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasComment("商品ID");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasComment("排序顺序");
+
+                    b.Property<string>("SpecificationName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasComment("规格名称");
+
+                    b.Property<string>("SpecificationValue")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasComment("规格值");
+
+                    b.Property<int?>("StockQuantity")
+                        .HasColumnType("int")
+                        .HasComment("库存数量");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("更新时间");
+
+                    b.HasKey("SpecificationId")
+                        .HasName("PK_ProductSpecification_SpecificationId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductSpecifications", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ShoppingCartItem", b =>
+                {
+                    b.Property<long>("CartItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("购物车项目ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CartItemId"));
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("创建时间");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasComment("商品ID");
+
+                    b.Property<long?>("ProductId1")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Quantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1)
+                        .HasComment("购买数量");
+
+                    b.Property<int>("Uid")
+                        .HasColumnType("int")
+                        .HasComment("用户ID");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("更新时间");
+
+                    b.Property<int?>("UserUid")
+                        .HasColumnType("int");
+
+                    b.HasKey("CartItemId")
+                        .HasName("PK_ShoppingCartItem_CartItemId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductId1");
+
+                    b.HasIndex("UserUid");
+
+                    b.HasIndex("Uid", "ProductId")
+                        .IsUnique();
+
+                    b.ToTable("ShoppingCartItem", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.User", b =>
                 {
                     b.Property<int>("Uid")
                         .ValueGeneratedOnAdd()
@@ -911,7 +1597,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("User", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserAiTradingOrder", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserAiTradingOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -968,7 +1654,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserAiTradingOrder", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserAsset", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserAsset", b =>
                 {
                     b.Property<int>("Uid")
                         .HasColumnType("int")
@@ -1093,7 +1779,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserAsset", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserAssetsToWalletOrder", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserAssetsToWalletOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1188,7 +1874,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserAssetsToWalletOrder", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserChainTransaction", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserChainTransaction", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1260,7 +1946,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserChainTransaction", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserInvitationRewardRecord", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserInvitationRewardRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1324,7 +2010,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserInvitationRewardRecord", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserLevelConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserLevelConfig", b =>
                 {
                     b.Property<int>("UserLevel")
                         .HasColumnType("int")
@@ -1397,7 +2083,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserLevelConfig", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserLoginLog", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserLoginLog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1442,7 +2128,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserLoginLog", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserMiningRewardRecord", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserMiningRewardRecord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1494,7 +2180,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserMiningRewardRecord", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserOnChainAssetsChange", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserOnChainAssetsChange", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1548,7 +2234,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserOnChainAssetsChange", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserPathNode", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserPathNode", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1591,7 +2277,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserPathNode", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserSysteamMessage", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserSysteamMessage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1649,9 +2335,80 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.ToTable("UserSysteamMessage", (string)null);
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ChainTokenConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.WalletUserProfile", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.ChainNetworkConfig", "Chain")
+                    b.Property<long>("WalletUserProfileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasComment("钱包档案ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("WalletUserProfileId"));
+
+                    b.Property<string>("AddressLabel")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasComment("地址标签");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getutcdate())")
+                        .HasComment("创建时间");
+
+                    b.Property<bool>("IsPrimary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasComment("是否主钱包");
+
+                    b.Property<DateTime?>("LastUsedTime")
+                        .HasColumnType("datetime")
+                        .HasComment("最近使用时间");
+
+                    b.Property<int?>("PreferredChainId")
+                        .HasColumnType("int")
+                        .HasComment("首选链");
+
+                    b.Property<string>("ProviderName")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasComment("钱包名称");
+
+                    b.Property<string>("ProviderType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasComment("钱包类型");
+
+                    b.Property<int>("Uid")
+                        .HasColumnType("int")
+                        .HasComment("用户ID");
+
+                    b.Property<int?>("UserUid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("WalletAddress")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)")
+                        .HasComment("钱包地址");
+
+                    b.HasKey("WalletUserProfileId")
+                        .HasName("PK_WalletUserProfile_WalletUserProfileId");
+
+                    b.HasIndex("Uid");
+
+                    b.HasIndex("UserUid");
+
+                    b.HasIndex("Uid", "ProviderType", "WalletAddress")
+                        .IsUnique();
+
+                    b.ToTable("WalletUserProfiles", (string)null);
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ChainTokenConfig", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", "Chain")
                         .WithMany("ChainTokenConfigs")
                         .HasForeignKey("ChainId")
                         .IsRequired()
@@ -1660,9 +2417,9 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("Chain");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ChainWalletConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ChainWalletConfig", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.ChainNetworkConfig", "Chain")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", "Chain")
                         .WithMany("ChainWalletConfigs")
                         .HasForeignKey("ChainId")
                         .IsRequired()
@@ -1671,17 +2428,17 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("Chain");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.Manager", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Manager", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "AttributionAgentU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "AttributionAgentU")
                         .WithMany("InverseAttributionAgentU")
                         .HasForeignKey("AttributionAgentUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "AttributionGroupLeaderU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "AttributionGroupLeaderU")
                         .WithMany("InverseAttributionGroupLeaderU")
                         .HasForeignKey("AttributionGroupLeaderUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.ManagerTypeConfig", "ManagerTypeNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ManagerTypeConfig", "ManagerTypeNavigation")
                         .WithMany("Managers")
                         .HasForeignKey("ManagerType")
                         .IsRequired()
@@ -1694,15 +2451,15 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("ManagerTypeNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerAiTradingActivationCode", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerAiTradingActivationCode", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "GeneratorU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "GeneratorU")
                         .WithMany("ManagerAiTradingActivationCodes")
                         .HasForeignKey("GeneratorUid")
                         .IsRequired()
                         .HasConstraintName("FK_Manager_ManagerAiTradingActivationCode");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UserU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UserU")
                         .WithMany("ManagerAiTradingActivationCodes")
                         .HasForeignKey("UserUid")
                         .HasConstraintName("FK_User_ManagerAiTradingActivationCode");
@@ -1712,9 +2469,9 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UserU");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerBalanceChange", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerBalanceChange", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "UidNavigation")
                         .WithMany("ManagerBalanceChanges")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1723,9 +2480,9 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerLoginLog", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerLoginLog", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "UidNavigation")
                         .WithMany("ManagerLoginLogs")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1734,20 +2491,20 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerOperationLog", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerOperationLog", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "OperatorU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "OperatorU")
                         .WithMany("ManagerOperationLogOperatorUs")
                         .HasForeignKey("OperatorUid")
                         .IsRequired()
                         .HasConstraintName("FK_Manager_ManagerOperationLog_OperatorUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "TargetManagerU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "TargetManagerU")
                         .WithMany("ManagerOperationLogTargetManagerUs")
                         .HasForeignKey("TargetManagerUid")
                         .HasConstraintName("FK_Manager_ManagerOperationLog_TragetManagerUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "TargetUserU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "TargetUserU")
                         .WithMany("ManagerOperationLogs")
                         .HasForeignKey("TargetUserUid")
                         .HasConstraintName("FK_User_ManagerOperationLog");
@@ -1759,20 +2516,20 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("TargetUserU");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerTransferFromUserOrder", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerTransferFromUserOrder", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "OperationManagerU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "OperationManagerU")
                         .WithMany("ManagerTransferFromUserOrders")
                         .HasForeignKey("OperationManagerUid")
                         .HasConstraintName("FK_Manager_ManagerTransferFromUserOrder");
 
-                    b.HasOne("SmallTarget.DbService.Entities.ChainTokenConfig", "Token")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainTokenConfig", "Token")
                         .WithMany("ManagerTransferFromUserOrders")
                         .HasForeignKey("TokenId")
                         .IsRequired()
                         .HasConstraintName("FK_ChainTokenConfig_ManagerTransferFromUserOrder");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("ManagerTransferFromUserOrders")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1785,34 +2542,224 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.User", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Order", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "AttributionAgentU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", "Chain")
+                        .WithMany()
+                        .HasForeignKey("ChainId")
+                        .HasConstraintName("FK_Orders_ChainNetworkConfig");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", null)
+                        .WithMany("Orders")
+                        .HasForeignKey("ChainNetworkConfigChainId");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
+                        .WithMany()
+                        .HasForeignKey("Uid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Orders_User");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", null)
+                        .WithMany("Orders")
+                        .HasForeignKey("UserUid");
+
+                    b.Navigation("Chain");
+
+                    b.Navigation("UidNavigation");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.OrderItem", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderItems_Orders_OrderId");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderItems_Product_ProductId");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Product", null)
+                        .WithMany("OrderItems")
+                        .HasForeignKey("ProductId1");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.OrderPaymentLog", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Order", "Order")
+                        .WithMany("PaymentLogs")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_OrderPaymentLog_Order");
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Product", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ProductCategory", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Product_ProductCategory");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", "Chain")
+                        .WithMany()
+                        .HasForeignKey("ChainId")
+                        .HasConstraintName("FK_Product_ChainNetworkConfig");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", null)
+                        .WithMany("Products")
+                        .HasForeignKey("ChainNetworkConfigChainId");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Chain");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductCategory", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ProductCategory", "ParentCategory")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentCategoryId")
+                        .HasConstraintName("FK_ProductCategory_ProductCategory");
+
+                    b.Navigation("ParentCategory");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductImage", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Product", "Product")
+                        .WithMany("ProductImages")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductImage_Product");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductInventory", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Product", "Product")
+                        .WithOne("Inventory")
+                        .HasForeignKey("UnifiedPlatform.DbService.Entities.ProductInventory", "ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductInventory_Product");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductReview", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Order", "Order")
+                        .WithMany("ProductReviews")
+                        .HasForeignKey("OrderId")
+                        .HasConstraintName("FK_ProductReview_Order");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Product", "Product")
+                        .WithMany("ProductReviews")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductReview_Product");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
+                        .WithMany("ProductReviews")
+                        .HasForeignKey("Uid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductReview_User");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("UidNavigation");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductSpecification", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Product", "Product")
+                        .WithMany("ProductSpecifications")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProductSpecification_Product");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ShoppingCartItem", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ShoppingCartItem_Product");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Product", null)
+                        .WithMany("ShoppingCartItems")
+                        .HasForeignKey("ProductId1");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
+                        .WithMany()
+                        .HasForeignKey("Uid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ShoppingCartItem_User");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", null)
+                        .WithMany("ShoppingCartItems")
+                        .HasForeignKey("UserUid");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("UidNavigation");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.User", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "AttributionAgentU")
                         .WithMany("UserAttributionAgentUs")
                         .HasForeignKey("AttributionAgentUid")
                         .HasConstraintName("FK_Manager_User_AttributionAgentUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "AttributionGroupLeaderU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "AttributionGroupLeaderU")
                         .WithMany("UserAttributionGroupLeaderUs")
                         .HasForeignKey("AttributionGroupLeaderUid")
                         .HasConstraintName("FK_Manager_User_AttributionGroupLeaderUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "AttributionSalesmanU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "AttributionSalesmanU")
                         .WithMany("UserAttributionSalesmanUs")
                         .HasForeignKey("AttributionSalesmanUid")
                         .HasConstraintName("FK_Manager_User_AttributionSalesmanUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.ChainNetworkConfig", "Chain")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", "Chain")
                         .WithMany("Users")
                         .HasForeignKey("ChainId")
                         .IsRequired();
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "ParentUserU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "ParentUserU")
                         .WithMany("InverseParentUserU")
                         .HasForeignKey("ParentUserUid")
                         .HasConstraintName("FK_User_User");
 
-                    b.HasOne("SmallTarget.DbService.Entities.UserLevelConfig", "UserLevelNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.UserLevelConfig", "UserLevelNavigation")
                         .WithMany("Users")
                         .HasForeignKey("UserLevel")
                         .IsRequired()
@@ -1831,9 +2778,9 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UserLevelNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserAiTradingOrder", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserAiTradingOrder", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserAiTradingOrders")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1842,17 +2789,17 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserAsset", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserAsset", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.ChainTokenConfig", "PrimaryToken")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainTokenConfig", "PrimaryToken")
                         .WithMany("UserAssets")
                         .HasForeignKey("PrimaryTokenId")
                         .IsRequired()
                         .HasConstraintName("FK_ChainTokenConfig_UserAsset");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithOne("UserAsset")
-                        .HasForeignKey("SmallTarget.DbService.Entities.UserAsset", "Uid")
+                        .HasForeignKey("UnifiedPlatform.DbService.Entities.UserAsset", "Uid")
                         .IsRequired()
                         .HasConstraintName("FK_User_UserAsset");
 
@@ -1861,20 +2808,20 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserAssetsToWalletOrder", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserAssetsToWalletOrder", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.Manager", "OperationManagerU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.Manager", "OperationManagerU")
                         .WithMany("UserAssetsToWalletOrders")
                         .HasForeignKey("OperationManagerUid")
                         .HasConstraintName("FK_Manager_UserAssetsToWalletOrder");
 
-                    b.HasOne("SmallTarget.DbService.Entities.ChainTokenConfig", "Token")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainTokenConfig", "Token")
                         .WithMany("UserAssetsToWalletOrders")
                         .HasForeignKey("TokenId")
                         .IsRequired()
                         .HasConstraintName("FK_ChainTokenConfig_UserAssetsToWalletOrder");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserAssetsToWalletOrders")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1887,15 +2834,15 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserChainTransaction", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserChainTransaction", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.ChainTokenConfig", "Token")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ChainTokenConfig", "Token")
                         .WithMany("UserChainTransactions")
                         .HasForeignKey("TokenId")
                         .IsRequired()
                         .HasConstraintName("FK_ChainTokenConfig_UserChainTransaction");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserChainTransactions")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1906,15 +2853,15 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserInvitationRewardRecord", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserInvitationRewardRecord", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.User", "SubUserU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "SubUserU")
                         .WithMany("UserInvitationRewardRecordSubUserUs")
                         .HasForeignKey("SubUserUid")
                         .IsRequired()
                         .HasConstraintName("FK_User_UserInvitationRewardRecord_SubUserUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserInvitationRewardRecordUidNavigations")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1925,9 +2872,9 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserLoginLog", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserLoginLog", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserLoginLogs")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1936,9 +2883,9 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserMiningRewardRecord", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserMiningRewardRecord", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserMiningRewardRecords")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1947,9 +2894,9 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserOnChainAssetsChange", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserOnChainAssetsChange", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserOnChainAssetsChanges")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1958,15 +2905,15 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserPathNode", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserPathNode", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.User", "SubUserU")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "SubUserU")
                         .WithMany("UserPathNodeSubUserUs")
                         .HasForeignKey("SubUserUid")
                         .IsRequired()
                         .HasConstraintName("FK_User_UserPathNode_SubUserUid");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserPathNodeUidNavigations")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1977,14 +2924,14 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserSysteamMessage", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserSysteamMessage", b =>
                 {
-                    b.HasOne("SmallTarget.DbService.Entities.ManagerAiTradingActivationCode", "ActivationCode")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.ManagerAiTradingActivationCode", "ActivationCode")
                         .WithMany("UserSysteamMessages")
                         .HasForeignKey("ActivationCodeGuid")
                         .HasConstraintName("FK_ManagerAiTradingActivationCode_UserSysteamMessage");
 
-                    b.HasOne("SmallTarget.DbService.Entities.User", "UidNavigation")
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
                         .WithMany("UserSysteamMessages")
                         .HasForeignKey("Uid")
                         .IsRequired()
@@ -1995,16 +2942,36 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UidNavigation");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ChainNetworkConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.WalletUserProfile", b =>
+                {
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", "UidNavigation")
+                        .WithMany()
+                        .HasForeignKey("Uid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WalletUserProfile_User");
+
+                    b.HasOne("UnifiedPlatform.DbService.Entities.User", null)
+                        .WithMany("WalletUserProfiles")
+                        .HasForeignKey("UserUid");
+
+                    b.Navigation("UidNavigation");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ChainNetworkConfig", b =>
                 {
                     b.Navigation("ChainTokenConfigs");
 
                     b.Navigation("ChainWalletConfigs");
 
+                    b.Navigation("Orders");
+
+                    b.Navigation("Products");
+
                     b.Navigation("Users");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ChainTokenConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ChainTokenConfig", b =>
                 {
                     b.Navigation("ManagerTransferFromUserOrders");
 
@@ -2015,7 +2982,7 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UserChainTransactions");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.Manager", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Manager", b =>
                 {
                     b.Navigation("InverseAttributionAgentU");
 
@@ -2042,17 +3009,48 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UserAttributionSalesmanUs");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerAiTradingActivationCode", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerAiTradingActivationCode", b =>
                 {
                     b.Navigation("UserSysteamMessages");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.ManagerTypeConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ManagerTypeConfig", b =>
                 {
                     b.Navigation("Managers");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.User", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Order", b =>
+                {
+                    b.Navigation("OrderItems");
+
+                    b.Navigation("PaymentLogs");
+
+                    b.Navigation("ProductReviews");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.Product", b =>
+                {
+                    b.Navigation("Inventory");
+
+                    b.Navigation("OrderItems");
+
+                    b.Navigation("ProductImages");
+
+                    b.Navigation("ProductReviews");
+
+                    b.Navigation("ProductSpecifications");
+
+                    b.Navigation("ShoppingCartItems");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.ProductCategory", b =>
+                {
+                    b.Navigation("Children");
+
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.User", b =>
                 {
                     b.Navigation("InverseParentUserU");
 
@@ -2061,6 +3059,12 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("ManagerOperationLogs");
 
                     b.Navigation("ManagerTransferFromUserOrders");
+
+                    b.Navigation("Orders");
+
+                    b.Navigation("ProductReviews");
+
+                    b.Navigation("ShoppingCartItems");
 
                     b.Navigation("UserAiTradingOrders");
 
@@ -2085,9 +3089,11 @@ namespace UnifiedPlatform.DbService.Migrations
                     b.Navigation("UserPathNodeUidNavigations");
 
                     b.Navigation("UserSysteamMessages");
+
+                    b.Navigation("WalletUserProfiles");
                 });
 
-            modelBuilder.Entity("SmallTarget.DbService.Entities.UserLevelConfig", b =>
+            modelBuilder.Entity("UnifiedPlatform.DbService.Entities.UserLevelConfig", b =>
                 {
                     b.Navigation("Users");
                 });

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 
 namespace Nblockchain.Tron
 {
@@ -35,3 +35,4 @@ namespace Nblockchain.Tron
         }
     }
 }
+

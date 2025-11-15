@@ -1,4 +1,4 @@
-﻿using Grpc.Core;
+using Grpc.Core;
 using Nblockchain.Signer;
 
 namespace Nblockchain.Tron
@@ -36,3 +36,4 @@ namespace Nblockchain.Tron
 #pragma warning restore CS8604 // 引用类型参数可能为 null。
     }
 }
+

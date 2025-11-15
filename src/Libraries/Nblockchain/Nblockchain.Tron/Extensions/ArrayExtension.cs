@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 
 namespace Nblockchain
 {
@@ -12,3 +12,4 @@ namespace Nblockchain
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.DbService
+namespace SmallTarget.DbService
 {
     /// <summary>
     /// 数据配置异常
@@ -14,3 +14,4 @@
         }
     }
 }
+

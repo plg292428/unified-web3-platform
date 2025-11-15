@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端更新代理余额资产请求
@@ -27,3 +27,4 @@
         public string? Comment { get; set; }
     }
 }
+

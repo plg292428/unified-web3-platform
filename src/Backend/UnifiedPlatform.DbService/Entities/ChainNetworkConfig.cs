@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class ChainNetworkConfig
 {
@@ -121,3 +121,4 @@ public partial class ChainNetworkConfig
 
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 }
+

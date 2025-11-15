@@ -1,4 +1,4 @@
-﻿using Nethereum.Signer.Crypto;
+using Nethereum.Signer.Crypto;
 using System;
 
 namespace Nblockchain.Signer
@@ -14,3 +14,4 @@ namespace Nblockchain.Signer
         }
     }
 }
+

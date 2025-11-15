@@ -1,8 +1,8 @@
-﻿using Quartz;
+using Quartz;
 using Quartz.AspNetCore;
-using SmallTarget.WebApi.Services.ScheduleJob.Jobs;
+using UnifiedPlatform.WebApi.Services.ScheduleJob.Jobs;
 
-namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     public static class ScheduleJobExtensions
     {
@@ -46,6 +46,13 @@ namespace SmallTarget.WebApi.Services
                     .WithCronSchedule("0 0/10 * * * ?")
                 );
 
+                // 订单支付验证和状态更新 - 每2分钟
+                q.ScheduleJob<HandleOrderPaymentVerificationJob>(trigger => trigger
+                    .WithIdentity(typeof(HandleOrderPaymentVerificationJob).ToString())
+                    .WithDescription(typeof(HandleOrderPaymentVerificationJob).ToString())
+                    .WithCronSchedule("0 0/2 * * * ?")
+                );
+
                 // 日常更新 - 启动执行一次后，每日执行一次
                 var handleUserRewardJobKey = new JobKey(typeof(DailyUpdateJob).ToString(), "Daily Update Job Group");
                 q.AddJob<DailyUpdateJob>(handleUserRewardJobKey, j => j
@@ -72,3 +79,4 @@ namespace SmallTarget.WebApi.Services
         }
     }
 }
+

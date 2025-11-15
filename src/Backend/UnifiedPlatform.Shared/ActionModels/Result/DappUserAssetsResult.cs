@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户财产响应数据
@@ -88,3 +88,4 @@
         public decimal TotalSystemRewards { get; set; }
     }
 }
+

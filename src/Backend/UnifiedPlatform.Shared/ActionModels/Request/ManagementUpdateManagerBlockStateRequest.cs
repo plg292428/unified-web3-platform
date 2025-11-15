@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端更新代理和下级员工禁用状态
@@ -16,3 +16,4 @@
         public bool Blocked { get; set; }
     }
 }
+

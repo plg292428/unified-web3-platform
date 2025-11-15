@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class User
 {
@@ -163,4 +163,13 @@ public partial class User
     public virtual ICollection<UserPathNode> UserPathNodeUidNavigations { get; set; } = new List<UserPathNode>();
 
     public virtual ICollection<UserSysteamMessage> UserSysteamMessages { get; set; } = new List<UserSysteamMessage>();
+
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public virtual ICollection<ShoppingCartItem> ShoppingCartItems { get; set; } = new List<ShoppingCartItem>();
+
+    public virtual ICollection<ProductReview> ProductReviews { get; set; } = new List<ProductReview>();
+
+    public virtual ICollection<WalletUserProfile> WalletUserProfiles { get; set; } = new List<WalletUserProfile>();
 }
+

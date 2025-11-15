@@ -1,4 +1,4 @@
-﻿
+
 using Google.Protobuf;
 using Org.BouncyCastle.Crypto.Digests;
 using System;
@@ -68,3 +68,4 @@ namespace Nblockchain.Signer
     }
 
 }
+

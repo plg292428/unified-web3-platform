@@ -1,6 +1,6 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端查询员工操作日志请求
@@ -23,3 +23,4 @@ namespace SmallTarget.Shared.ActionModels
         public ManagerOperationType? OperationType { get; set; }
     }
 }
+

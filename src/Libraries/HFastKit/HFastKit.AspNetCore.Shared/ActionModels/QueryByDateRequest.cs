@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace HFastKit.AspNetCore.Shared
 {
@@ -51,3 +51,4 @@ namespace HFastKit.AspNetCore.Shared
         }
     }
 }
+

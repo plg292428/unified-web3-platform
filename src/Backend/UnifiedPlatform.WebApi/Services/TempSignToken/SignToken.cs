@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// 登录令牌
@@ -33,3 +33,4 @@
         }
     }
 }
+

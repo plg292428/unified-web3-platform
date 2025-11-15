@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     public class ManagementChangeAgentOnlyDeveloperVisibleRequest
     {
@@ -13,3 +13,4 @@
         public bool OnlyDeveloperVisible { get; set; }
     }
 }
+

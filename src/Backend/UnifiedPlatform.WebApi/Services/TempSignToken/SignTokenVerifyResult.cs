@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// 签名令牌验证结果
@@ -21,3 +21,4 @@
         public string? ErrorMessage { get; set; }
     }
 }
+

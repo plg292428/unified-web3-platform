@@ -1,6 +1,7 @@
-﻿namespace UnifiedPlatform.Shared;
+namespace UnifiedPlatform.Shared;
 
 public class Class1
 {
 
 }
+

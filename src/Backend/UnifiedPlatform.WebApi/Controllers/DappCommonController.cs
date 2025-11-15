@@ -1,14 +1,14 @@
-﻿using HFastKit.AspNetCore.Services.Captcha;
+using HFastKit.AspNetCore.Services.Captcha;
 using HFastKit.AspNetCore.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SmallTarget.DbService.Entities;
-using SmallTarget.Shared;
-using SmallTarget.Shared.ActionModels;
-using SmallTarget.WebApi.Services;
+using UnifiedPlatform.DbService.Entities;
+using UnifiedPlatform.Shared;
+using UnifiedPlatform.Shared.ActionModels;
+using UnifiedPlatform.WebApi.Services;
 
-namespace SmallTarget.WebApi.Controllers
+namespace UnifiedPlatform.WebApi.Controllers
 {
     [Consumes("application/json")]
     [Route("[controller]/[action]")]
@@ -211,3 +211,4 @@ namespace SmallTarget.WebApi.Controllers
         }
     }
 }
+

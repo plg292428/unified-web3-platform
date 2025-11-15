@@ -1,10 +1,10 @@
-﻿using HFastKit.AspNetCore.Shared.Extensions;
+using HFastKit.AspNetCore.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using SmallTarget.DbService.Entities;
-using SmallTarget.Shared;
+using UnifiedPlatform.DbService.Entities;
+using UnifiedPlatform.Shared;
 
-namespace SmallTarget.WebApi.Services.ScheduleJob.Jobs
+namespace UnifiedPlatform.WebApi.Services.ScheduleJob.Jobs
 {
     /// <summary>
     /// 处理用户 AI 合约交易
@@ -193,3 +193,4 @@ namespace SmallTarget.WebApi.Services.ScheduleJob.Jobs
         }
     }
 }
+

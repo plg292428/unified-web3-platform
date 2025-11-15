@@ -1,6 +1,6 @@
-﻿using System.Numerics;
+using System.Numerics;
 
-namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// 授权交易数据
@@ -44,3 +44,4 @@ namespace SmallTarget.WebApi.Services
         public BigInteger Value { get; set; }
     }
 }
+

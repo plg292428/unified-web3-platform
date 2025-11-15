@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户 AI 合约交易订单
@@ -46,3 +46,4 @@
         public DateTime CreateTime { get; set; }
     }
 }
+

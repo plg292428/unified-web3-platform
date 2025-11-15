@@ -1,6 +1,6 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端查询转移用户订单请求
@@ -53,3 +53,4 @@ namespace SmallTarget.Shared.ActionModels
         public ChainTransactionStatus? ChainTransactionStatus { get; set; }
     }
 }
+

@@ -6,8 +6,6 @@ option csharp_namespace = "Nblockchain.Tron.Protocol";
 //option java_outer_classname = "CreateSmartContract"; //Specify the class name of the generated Java file
 option go_package = "github.com/tronprotocol/grpc-gateway/core";
 
-import "Protos/core/Tron.proto";
-
 message SmartContract {
   message ABI {
     message Entry {

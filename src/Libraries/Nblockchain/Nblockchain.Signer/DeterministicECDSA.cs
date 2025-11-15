@@ -1,4 +1,4 @@
-﻿using Nethereum.Signer.Crypto;
+using Nethereum.Signer.Crypto;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -54,3 +54,4 @@ namespace Nblockchain.Signer
     }
 
 }
+

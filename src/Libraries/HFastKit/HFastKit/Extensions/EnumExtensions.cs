@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Reflection;
 
 namespace HFastKit.Extensions;
@@ -33,3 +33,4 @@ public static class EnumExtensions
         return string.Empty;
     }
 }
+

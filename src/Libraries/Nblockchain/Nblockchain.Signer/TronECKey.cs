@@ -1,4 +1,4 @@
-﻿using Nethereum.Hex.HexConvertors.Extensions;
+using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Signer;
 using Nethereum.Signer.Crypto;
 using Org.BouncyCastle.Crypto;
@@ -245,3 +245,4 @@ namespace Nblockchain.Signer
         }
     }
 }
+

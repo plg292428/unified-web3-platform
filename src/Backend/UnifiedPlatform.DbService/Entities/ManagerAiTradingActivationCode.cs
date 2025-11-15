@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class ManagerAiTradingActivationCode
 {
@@ -40,3 +40,4 @@ public partial class ManagerAiTradingActivationCode
 
     public virtual User? UserU { get; set; }
 }
+

@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 用户链上资产变动类型
@@ -78,3 +78,4 @@ namespace SmallTarget.Shared
         SystemReward = 212,
     }
 }
+

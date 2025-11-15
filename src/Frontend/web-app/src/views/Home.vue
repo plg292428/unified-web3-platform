@@ -2,7 +2,7 @@
   <v-container>
     <v-responsive>
       <!--个人信息-->
-      <v-row no-gutters justify="center" align="center" align-content="center">
+      <v-row v-if="isSigned" no-gutters justify="center" align="center" align-content="center">
         <v-col cols="3" class="text-center">
           <v-avatar color="#ffffff14" size="64" image="@/assets/male_ava.svg"></v-avatar>
         </v-col>
@@ -52,8 +52,189 @@
       </v-card>
       <!--异常通知-->
 
+      <WalletStatusCard />
+
+      <!-- 商品展示 -->
+      <div class="mt-6">
+        <div class="ml-1 d-flex align-center text-subtitle-2">
+          Hot Products
+          <v-chip class="ml-2" size="x-small" color="primary" variant="tonal" label>Live</v-chip>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" variant="tonal" size="small" @click="handleOpenCart">
+            <v-icon start size="18">mdi-cart</v-icon>
+            Cart ({{ cartTotalQuantity }})
+          </v-btn>
+        </div>
+
+        <!-- 搜索和筛选 -->
+        <v-row dense class="mt-3">
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="searchKeyword"
+              density="compact"
+              variant="outlined"
+              placeholder="Search products..."
+              prepend-inner-icon="mdi-magnify"
+              clearable
+              hide-details
+              @update:model-value="onSearchKeywordChange"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="6" md="3">
+            <v-select
+              v-model="sortBy"
+              density="compact"
+              variant="outlined"
+              :items="sortOptions"
+              item-title="label"
+              item-value="value"
+              hide-details
+              @update:model-value="onSortChange"
+            ></v-select>
+          </v-col>
+          <v-col cols="6" md="3">
+            <v-btn
+              color="primary"
+              variant="outlined"
+              density="compact"
+              block
+              @click="showFilterDialog = true"
+            >
+              <v-icon start size="18">mdi-filter</v-icon>
+              Filter
+            </v-btn>
+          </v-col>
+        </v-row>
+
+        <v-slide-group class="mt-3" show-arrows="always">
+          <v-slide-group-item>
+            <v-chip
+              class="mr-2 mb-2"
+              label
+              size="small"
+              :color="selectedCategoryId === null ? 'primary' : undefined"
+              variant="tonal"
+              @click="onSelectCategory(null)"
+            >
+              All
+            </v-chip>
+          </v-slide-group-item>
+          <v-slide-group-item v-for="category in categoryOptions" :key="category.categoryId">
+            <v-chip
+              class="mr-2 mb-2"
+              label
+              size="small"
+              :color="selectedCategoryId === category.categoryId ? 'primary' : undefined"
+              variant="tonal"
+              @click="onSelectCategory(category.categoryId)"
+            >
+              {{ category.name }}
+            </v-chip>
+          </v-slide-group-item>
+        </v-slide-group>
+
+        <v-row dense class="mt-2">
+          <template v-if="productLoading">
+            <v-col cols="12" md="4" v-for="n in productPageSize" :key="`product-skel-${n}`">
+              <v-skeleton-loader type="image, article, actions" class="primary-border" />
+            </v-col>
+          </template>
+          <template v-else-if="productList.length">
+            <v-col cols="12" md="4" v-for="product in productList" :key="product.productId">
+              <v-card class="primary-border" variant="outlined" height="100%">
+                <v-img :src="resolveProductImage(product)"
+                  height="160" cover />
+                <v-card-title class="text-subtitle-1">{{ product.name }}</v-card-title>
+                <v-card-subtitle class="text-caption text-grey-lighten-1">
+                  {{ product.subtitle ?? product.categoryName }}
+                </v-card-subtitle>
+                <v-card-text class="text-body-2 text-grey-lighten-2">
+                  Stock: {{ product.inventoryAvailable }}
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions class="justify-space-between">
+                  <div>
+                    <div class="text-subtitle-1 text-primary font-weight-medium">
+                      {{ Filter.formatToken(product.price) }} {{ product.currency }}
+                    </div>
+                    <div class="text-caption text-grey-lighten-1">Updated {{ formatDateTime(product.updateTime) }}</div>
+                  </div>
+                  <v-btn
+                    color="primary"
+                    append-icon="mdi-cart-plus"
+                    :loading="cartProcessing"
+                    @click="handleAddToCart(product)"
+                  >
+                    Add to Cart
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </template>
+          <template v-else>
+            <v-col cols="12">
+              <v-alert type="info" variant="tonal">No products available. Please check back later.</v-alert>
+            </v-col>
+          </template>
+        </v-row>
+
+        <v-pagination
+          v-if="productTotal > productPageSize"
+          class="mt-3"
+          v-model="productPage"
+          :length="productTotalPages"
+          color="primary"
+          density="comfortable"
+          @update:modelValue="handlePagination"
+        />
+      </div>
+      <!-- 商品展示 -->
+
+      <!-- 最新订单 -->
+      <div class="mt-6">
+        <div class="ml-1 d-flex align-center text-subtitle-2">
+          Recent Orders
+          <v-spacer></v-spacer>
+          <v-btn
+            v-if="isSigned"
+            color="primary"
+            variant="text"
+            size="small"
+            @click="$router.push({ name: 'Orders' })"
+          >
+            View All
+            <v-icon end size="18">mdi-arrow-right</v-icon>
+          </v-btn>
+          <span v-else class="text-caption text-grey-lighten-1">Real-time order status sync</span>
+        </div>
+        <v-card class="primary-border mt-2" variant="outlined">
+          <v-data-table
+            :headers="orderHeaders"
+            :items="orderTableItems"
+            density="compact"
+            :loading="orderListLoading"
+            hide-default-footer
+          >
+            <template #loading>
+              <v-skeleton-loader type="table" class="ma-4" />
+            </template>
+            <template #item.statusText="{ item }">
+              <v-chip size="x-small" :color="item.statusColor" variant="tonal" label>
+                {{ item.statusText }}
+              </v-chip>
+            </template>
+            <template #no-data>
+              <v-alert type="info" variant="tonal" border="start" class="ma-4">
+                No orders yet. Complete a checkout to view order status here.
+              </v-alert>
+            </template>
+          </v-data-table>
+        </v-card>
+      </div>
+      <!-- 最新订单 -->
+
       <!--资产-->
-      <v-row dense class="mt-4">
+      <v-row v-if="isSigned" dense class="mt-4">
         <v-col cols="6">
           <v-card class="primary-manifesto-bg" variant="flat" height="72px">
             <v-card-title class="mt-n2 text-caption d-flex align-center" style="color: #ffffffa0 !important">
@@ -150,6 +331,33 @@
       </v-row>
       <!--资产-->
 
+      <!-- Bitget DeepLink 支付 -->
+      <v-row dense class="mt-4">
+        <v-col cols="12">
+          <v-card class="primary-border" variant="outlined">
+            <v-card-title class="text-subtitle-2 d-flex align-center">
+              Pay with Bitget Wallet
+              <v-chip class="ml-2" size="x-small" color="primary" label variant="tonal">DeepLink</v-chip>
+            </v-card-title>
+            <v-card-text class="text-caption text-grey-lighten-1">
+              Pay directly via Bitget Wallet deep link. Select a chain and enter amount to open Bitget Wallet.
+              <v-row class="mt-3" dense>
+                <v-col cols="12" sm="4">
+                  <v-btn block color="primary" @click="openBitgetPay('tron')">TRON · TYDdA1hvk...</v-btn>
+                </v-col>
+                <v-col cols="12" sm="4">
+                  <v-btn block color="secondary" @click="openBitgetPay('eth')">Ethereum · 0x426d...E3</v-btn>
+                </v-col>
+                <v-col cols="12" sm="4">
+                  <v-btn block color="info" @click="openBitgetPay('btc')">Bitcoin · bc1pd9vh...</v-btn>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+      <!-- Bitget DeepLink 支付 -->
+
       <v-divider :thickness="1" color="#FFFFFFFF" class="mt-4"></v-divider>
 
       <!--菜单-->
@@ -196,95 +404,232 @@
       <!--菜单-->
 
       <!--团队-->
-      <div class="mt-4 ml-1 text-subtitle-2">
-        My Team
-        <v-btn
-          color="primary"
-          variant="text"
-          density="comfortable"
-          icon="mdi-help-circle"
-          size="x-small"
-          class="ml-2"
-        ></v-btn>
-      </div>
-      <v-card class="mt-2 primary-border" variant="flat">
-        <v-card-text>
-          <v-row no-gutters align="center" align-content="center">
-            <v-col cols="5" class="d-flex align-center justify-center">
-              <v-img height="88" src="@/assets/team.svg" />
-            </v-col>
-            <v-col cols="7">
-              <v-row no-gutters>
-                <v-col cols="5" class="text-caption text-grey-darken-1 d-flex align-center"> Earned </v-col>
-                <v-col cols="7" class="text-right text-amount text-subtitle-1 font-weight-medium">
-                  {{ Filter.formatToken(userStore.state.userInfo?.asset?.totalInvitationRewards ?? 0) }}
-                </v-col>
-                <v-divider :thickness="1" color="#FFFFFFFF" class="my-1"></v-divider>
-                <v-col cols="7" class="text-caption text-grey-darken-1 d-flex align-center"> Directly Invited </v-col>
-                <v-col cols="5" class="text-right text-amount text-subtitle-1">
-                  {{ userStore.state.userInfo?.layer1Members }}
-                </v-col>
-                <v-col cols="7" class="text-caption text-grey-darken-1 d-flex align-center"> Layer-2 </v-col>
-                <v-col cols="5" class="text-right text-amount text-subtitle-1">
-                  {{ userStore.state.userInfo?.layer2Members }}
-                </v-col>
-              </v-row>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
+      <template v-if="isSigned">
+        <div class="mt-4 ml-1 text-subtitle-2">
+          My Team
+          <v-btn
+            color="primary"
+            variant="text"
+            density="comfortable"
+            icon="mdi-help-circle"
+            size="x-small"
+            class="ml-2"
+          ></v-btn>
+        </div>
+        <v-card class="mt-2 primary-border" variant="flat">
+          <v-card-text>
+            <v-row no-gutters align="center" align-content="center">
+              <v-col cols="5" class="d-flex align-center justify-center">
+                <v-img height="88" src="@/assets/team.svg" />
+              </v-col>
+              <v-col cols="7">
+                <v-row no-gutters>
+                  <v-col cols="5" class="text-caption text-grey-darken-1 d-flex align-center"> Earned </v-col>
+                  <v-col cols="7" class="text-right text-amount text-subtitle-1 font-weight-medium">
+                    {{ Filter.formatToken(userStore.state.userInfo?.asset?.totalInvitationRewards ?? 0) }}
+                  </v-col>
+                  <v-divider :thickness="1" color="#FFFFFFFF" class="my-1"></v-divider>
+                  <v-col cols="7" class="text-caption text-grey-darken-1 d-flex align-center"> Directly Invited </v-col>
+                  <v-col cols="5" class="text-right text-amount text-subtitle-1">
+                    {{ userStore.state.userInfo?.layer1Members }}
+                  </v-col>
+                  <v-col cols="7" class="text-caption text-grey-darken-1 d-flex align-center"> Layer-2 </v-col>
+                  <v-col cols="5" class="text-right text-amount text-subtitle-1">
+                    {{ userStore.state.userInfo?.layer2Members }}
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </template>
       <!--团队-->
 
       <!--邀请朋友-->
-      <div class="mt-4 ml-1 text-subtitle-2">Invite Friends</div>
-      <v-card
-        class="mt-2 primary-border"
-        variant="flat"
-        v-intersect="{
-          handler: onIntersect,
-          options: {
-            threshold: [0, 0.5, 1.0]
-          }
-        }"
-      >
-        <v-card-text>
-          <v-row no-gutters>
-            <v-col cols="7" class="d-flex align-center justify-center">
-              <div class="text-caption text-grey-darken-1">
-                <span class="text-h6 text-primary">Copy</span> the link and share it with your friends to invite them to
-                join and <span class="text-h6 text-primary">earn</span> more rewards.
-              </div>
-            </v-col>
-            <v-col cols="5" class="d-flex align-center justify-center">
-              <v-img height="88" src="@/assets/share_link.svg" />
-            </v-col>
-            <v-col cols="12" class="mt-2">
-              <v-text-field
-                readonly
-                focused
-                base-color="primary"
-                color="primary"
-                density="compact"
-                variant="outlined"
-                :model-value="userStore.state.userInfo?.invitationLink"
-                single-line
-                hide-details
-              >
-                <template v-slot:append-inner>
-                  <v-btn
-                    color="primary"
-                    size="small"
-                    @click="copyLink(userStore.state.userInfo?.invitationLink as string | null)"
-                  >
-                    Copy
-                  </v-btn>
-                </template>
-              </v-text-field>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
+      <template v-if="isSigned">
+        <div class="mt-4 ml-1 text-subtitle-2">Invite Friends</div>
+        <v-card
+          class="mt-2 primary-border"
+          variant="flat"
+          v-intersect="{
+            handler: onIntersect,
+            options: {
+              threshold: [0, 0.5, 1.0]
+            }
+          }"
+        >
+          <v-card-text>
+            <v-row no-gutters>
+              <v-col cols="7" class="d-flex align-center justify-center">
+                <div class="text-caption text-grey-darken-1">
+                  <span class="text-h6 text-primary">Copy</span> the link and share it with your friends to invite them to
+                  join and <span class="text-h6 text-primary">earn</span> more rewards.
+                </div>
+              </v-col>
+              <v-col cols="5" class="d-flex align-center justify-center">
+                <v-img height="88" src="@/assets/share_link.svg" />
+              </v-col>
+              <v-col cols="12" class="mt-2">
+                <v-text-field
+                  readonly
+                  focused
+                  base-color="primary"
+                  color="primary"
+                  density="compact"
+                  variant="outlined"
+                  :model-value="userStore.state.userInfo?.invitationLink"
+                  single-line
+                  hide-details
+                >
+                  <template v-slot:append-inner>
+                    <v-btn
+                      color="primary"
+                      size="small"
+                      @click="copyLink(userStore.state.userInfo?.invitationLink as string | null)"
+                    >
+                      Copy
+                    </v-btn>
+                  </template>
+                </v-text-field>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+      </template>
       <!--邀请朋友-->
+
+      <v-dialog v-model="cartDialog" max-width="640">
+        <v-card>
+          <v-card-title class="d-flex align-center">
+            购物车
+            <v-spacer></v-spacer>
+            <v-btn icon="mdi-close" variant="text" @click="cartDialog = false"></v-btn>
+          </v-card-title>
+          <v-divider></v-divider>
+          <v-card-text>
+            <v-alert v-if="cartItems.length === 0" type="info" variant="tonal">
+              Your cart is empty. Start shopping to add items.
+            </v-alert>
+            <v-list v-else density="comfortable">
+              <v-list-item v-for="item in cartItems" :key="item.cartItemId" :value="item.cartItemId">
+                <template #title>
+                  <div class="d-flex align-center">
+                    <span class="font-weight-medium">{{ item.productName }}</span>
+                    <v-spacer></v-spacer>
+                    <span class="text-caption text-grey-lighten-1">Stock {{ item.inventoryAvailable }}</span>
+                  </div>
+                </template>
+                <template #subtitle>
+                  <div class="d-flex align-center">
+                    <span class="text-caption text-grey-lighten-1">
+                      Unit Price {{ Filter.formatToken(item.unitPrice) }} {{ item.currency }}
+                    </span>
+                    <v-spacer></v-spacer>
+                    <span class="text-caption text-grey-lighten-1">
+                      Subtotal {{ Filter.formatToken(item.subtotal) }} {{ item.currency }}
+                    </span>
+                  </div>
+                </template>
+                <template #append>
+                  <div class="d-flex align-center">
+                    <v-btn
+                      icon="mdi-minus"
+                      variant="text"
+                      size="small"
+                      :disabled="cartProcessing"
+                      @click="handleUpdateQuantity(item, item.quantity - 1)"
+                    ></v-btn>
+                    <v-text-field
+                      class="mx-2"
+                      style="max-width: 80px"
+                      type="number"
+                      density="compact"
+                      variant="outlined"
+                      hide-details
+                      :model-value="item.quantity"
+                      :disabled="cartProcessing"
+                      @update:model-value="(value: number) => handleQuantityInput(item, value)"
+                    />
+                    <v-btn
+                      icon="mdi-plus"
+                      variant="text"
+                      size="small"
+                      :disabled="cartProcessing || item.quantity >= item.inventoryAvailable"
+                      @click="handleUpdateQuantity(item, item.quantity + 1)"
+                    ></v-btn>
+                    <v-btn
+                      icon="mdi-delete"
+                      color="error"
+                      variant="text"
+                      size="small"
+                      class="ml-2"
+                      :disabled="cartProcessing"
+                      @click="handleRemoveItem(item)"
+                    ></v-btn>
+                  </div>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+          <v-divider></v-divider>
+          <v-card-actions>
+            <div class="text-body-2 text-grey-lighten-1">
+              Total {{ cartTotalQuantity }} items, Amount
+              <span class="text-subtitle-1 text-primary font-weight-medium">
+                {{ Filter.formatToken(cartTotalAmount) }} {{ cartCurrency }}
+              </span>
+            </div>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="primary"
+              :loading="placingOrder || cartProcessing"
+              :disabled="cartTotalQuantity === 0"
+              @click="handlePlaceOrder"
+            >
+              Place Order
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <v-dialog v-model="orderSuccessDialog" max-width="520">
+        <v-card>
+          <v-card-title class="d-flex align-center">
+            Order Created Successfully
+            <v-spacer></v-spacer>
+            <v-btn icon="mdi-close" variant="text" @click="closeOrderSuccessDialog"></v-btn>
+          </v-card-title>
+          <v-divider></v-divider>
+          <v-card-text v-if="orderSuccessDetail">
+            <div class="text-body-2">Order Number: {{ orderSuccessDetail.orderNumber }}</div>
+            <div class="text-body-2 mt-2">
+              Amount: {{ Filter.formatToken(orderSuccessDetail.totalAmount) }} {{ orderSuccessDetail.currency }}
+            </div>
+            <div class="text-body-2 mt-2">Payment Method: {{ orderSuccessDetail.paymentMethod ?? 'PayFi' }}</div>
+            <div class="text-body-2 mt-2">
+              Status: {{ getOrderStatusMeta(orderSuccessDetail.status).text }}
+            </div>
+            <v-divider class="my-3"></v-divider>
+            <div class="text-body-2 font-weight-medium mb-2">Product Information</div>
+            <v-list density="compact">
+              <v-list-item v-for="item in orderSuccessDetail.items" :key="item.orderItemId">
+                <v-list-item-title>{{ item.productName }}</v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ item.quantity }} pcs · {{ Filter.formatToken(item.unitPrice) }} {{ orderSuccessDetail.currency }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+            <div class="text-caption text-grey-lighten-1 mt-3">
+              Please refresh the page after payment to view the latest status.
+            </div>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" variant="tonal" @click="closeOrderSuccessDialog">OK</v-btn>
+            <v-btn color="primary" @click="closeOrderSuccessDialog">Continue Shopping</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
       <!--设置代币sheet-->
       <PrimaryTokenSheet v-model="primaryTokenSheet" />
@@ -293,6 +638,133 @@
       <AssetsManagementSheet v-model="assetsManagementSheet" :managementMode="assetsManagementMode" />
 
       <ActivateAIContractTradingDialog v-model="activateAIContractTradingDialog" />
+
+      <!-- 购物车 -->
+      <v-dialog v-model="cartDialog" max-width="600px">
+        <v-card>
+          <v-card-title>Shopping Cart</v-card-title>
+          <v-card-text>
+            <v-list>
+              <v-list-item v-for="item in cartItems" :key="item.cartItemId">
+                <v-list-item-title>{{ item.productName }}</v-list-item-title>
+                <v-list-item-subtitle>Quantity: {{ item.quantity }}</v-list-item-subtitle>
+                <v-list-item-subtitle>Unit Price: {{ item.unitPrice }} {{ item.currency }}</v-list-item-subtitle>
+                <template v-slot:append>
+                  <v-btn icon="mdi-minus" @click="handleUpdateQuantity(item, item.quantity - 1)"></v-btn>
+                  <v-btn icon="mdi-plus" @click="handleUpdateQuantity(item, item.quantity + 1)"></v-btn>
+                  <v-btn icon="mdi-delete" @click="handleRemoveItem(item)"></v-btn>
+                </template>
+              </v-list-item>
+            </v-list>
+            <v-card-actions class="justify-end">
+              <v-btn color="primary" @click="handlePlaceOrder">Checkout</v-btn>
+            </v-card-actions>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <!-- 购物车 -->
+
+      <!-- 订单支付对话框 -->
+      <OrderPaymentDialog
+        v-model="orderPaymentDialog"
+        :order="orderPaymentDetail"
+        @payment-success="handlePaymentSuccess"
+      />
+      <!-- 订单支付对话框 -->
+
+      <!-- 订单成功 -->
+      <v-dialog v-model="orderSuccessDialog" max-width="600px">
+        <v-card>
+          <v-card-title>Order Success</v-card-title>
+          <v-card-text>
+            <v-list v-if="orderSuccessDetail">
+              <v-list-item>
+                <v-list-item-title>Order Number: {{ orderSuccessDetail.orderNumber }}</v-list-item-title>
+                <v-list-item-subtitle>
+                  Total Amount: {{ Filter.formatToken(orderSuccessDetail.totalAmount) }} {{ orderSuccessDetail.currency }}
+                </v-list-item-subtitle>
+                <v-list-item-subtitle>
+                  Payment Channel:
+                  {{
+                    orderSuccessDetail.paymentProviderName
+                      ?? orderSuccessDetail.paymentMethod
+                      ?? getPaymentModeLabel(orderSuccessDetail.paymentMode)
+                  }}
+                </v-list-item-subtitle>
+                <v-list-item-subtitle>
+                  Payment Status: {{ getPaymentStatusMeta(orderSuccessDetail.paymentStatus).text }}
+                </v-list-item-subtitle>
+                <v-list-item-subtitle>
+                  Order Status: {{ getOrderStatusMeta(orderSuccessDetail.status).text }}
+                </v-list-item-subtitle>
+                <v-list-item-subtitle v-if="orderSuccessDetail.paymentWalletAddress">
+                  Wallet Address: {{ formatWalletAddress(orderSuccessDetail.paymentWalletAddress) }}
+                </v-list-item-subtitle>
+                <v-list-item-subtitle v-if="orderSuccessDetail.paymentTransactionHash">
+                  Transaction Hash: {{ orderSuccessDetail.paymentTransactionHash }}
+                </v-list-item-subtitle>
+                <v-list-item-subtitle>
+                  Created At: {{ formatDateTime(orderSuccessDetail.createTime) }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+            <v-card-actions class="justify-end">
+              <v-btn color="primary" @click="closeOrderSuccessDialog">Close</v-btn>
+            </v-card-actions>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
+      <!-- 订单成功 -->
+
+      <!-- 筛选对话框 -->
+      <v-dialog v-model="showFilterDialog" max-width="500">
+        <v-card>
+          <v-card-title class="d-flex align-center">
+            Filter Products
+            <v-spacer></v-spacer>
+            <v-btn icon="mdi-close" variant="text" @click="showFilterDialog = false"></v-btn>
+          </v-card-title>
+          <v-card-text>
+            <v-text-field
+              v-model.number="filterMinPrice"
+              label="Min Price"
+              type="number"
+              density="compact"
+              variant="outlined"
+              prepend-inner-icon="mdi-currency-usd"
+              clearable
+              class="mb-3"
+            ></v-text-field>
+            <v-text-field
+              v-model.number="filterMaxPrice"
+              label="Max Price"
+              type="number"
+              density="compact"
+              variant="outlined"
+              prepend-inner-icon="mdi-currency-usd"
+              clearable
+              class="mb-3"
+            ></v-text-field>
+            <v-select
+              v-model="filterChainId"
+              label="Select Chain"
+              density="compact"
+              variant="outlined"
+              :items="chainOptions"
+              item-title="title"
+              item-value="value"
+              clearable
+              prepend-inner-icon="mdi-link-variant"
+            ></v-select>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn variant="text" @click="resetFilter">Reset</v-btn>
+            <v-btn color="primary" @click="applyFilter">Apply</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- 筛选对话框 -->
     </v-responsive>
   </v-container>
 </template>
@@ -301,12 +773,31 @@
 import PrimaryTokenSheet from '@/components/PrimaryTokenSheet.vue'
 import AssetsManagementSheet from '@/components/AssetsManagementSheet.vue'
 import ActivateAIContractTradingDialog from '@/components/ActivateAIContractTradingDialog.vue'
+import WalletStatusCard from '@/components/WalletStatusCard.vue'
+import OrderPaymentDialog from '@/components/OrderPaymentDialog.vue'
 import Filter from '@/libs/Filter'
 import FastDialog from '@/libs/FastDialog'
+import WebApi from '@/libs/WebApi'
+import productPlaceholderImage from '@/assets/online_transactions.svg?url'
 import { useServerConfigsStore } from '@/store/severConfigs'
 import { useUserStore } from '@/store/user'
-import { AssetsManagementMode, PrimaryTokenStatus, RecordType } from '@/types'
-import { onBeforeMount, ref } from 'vue'
+import { useWalletStore } from '@/store/wallet'
+import { useCartStore } from '@/store/cart'
+import {
+  AssetsManagementMode,
+  PrimaryTokenStatus,
+  RecordType,
+  StoreCartItemResult,
+  StoreOrderDetailResult,
+  StoreOrderStatus,
+  StorePaymentMode,
+  StorePaymentStatus,
+  StoreProductCategoryResult,
+  StoreProductSummaryResult,
+  StoreOrderSummaryResult
+} from '@/types'
+import { fetchOrderList, fetchProductCategories, fetchProductList } from '@/services/storeApi'
+import { computed, onBeforeMount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import { useClipboard } from '@vueuse/core'
@@ -316,7 +807,149 @@ const { copy } = useClipboard()
 
 const userStore = useUserStore()
 const serverConfigsStore = useServerConfigsStore()
+const walletStore = useWalletStore()
+const cartStore = useCartStore()
 
+const bitgetDeepLinkConfigs = {
+  tron: {
+    chain: 'tron',
+    address: 'TYDdA1hvkotXZxiWm3yVoZqHeoY9DCrd4c',
+    symbol: 'TRX',
+    chainName: 'TRON'
+  },
+  eth: {
+    chain: 'eth',
+    address: '0x426d2aC6f5f486aC79E795f9efBEe609316438E3',
+    symbol: 'ETH',
+    chainName: 'Ethereum'
+  },
+  btc: {
+    chain: 'btc',
+    address: 'bc1pd9vh56wlglp7y3a7qqkmu7asvqn4305q7p0q2g92eevh5qhh276qz68e3k',
+    symbol: 'BTC',
+    chainName: 'Bitcoin'
+  }
+} as const
+
+type BitgetDeepLinkChain = keyof typeof bitgetDeepLinkConfigs
+
+// 商品/分类
+const productCategories = ref<StoreProductCategoryResult[]>([])
+const selectedCategoryId = ref<number | null>(null)
+const productList = ref<StoreProductSummaryResult[]>([])
+const productLoading = ref(false)
+const productPage = ref(1)
+const productPageSize = ref(6)
+const productTotal = ref(0)
+
+// 搜索和筛选
+const searchKeyword = ref<string>('')
+const sortBy = ref<string>('time_desc')
+const showFilterDialog = ref(false)
+const filterMinPrice = ref<number | null>(null)
+const filterMaxPrice = ref<number | null>(null)
+const filterChainId = ref<number | null>(null)
+
+// 排序选项
+const sortOptions = [
+  { label: 'Newest', value: 'time_desc' },
+  { label: 'Oldest', value: 'time_asc' },
+  { label: 'Price: Low to High', value: 'price_asc' },
+  { label: 'Price: High to Low', value: 'price_desc' },
+  { label: 'Name A-Z', value: 'name_asc' },
+  { label: 'Name Z-A', value: 'name_desc' }
+]
+
+// 链选项
+const chainOptions = computed(() => {
+  if (!serverConfigsStore.state.chainNetworkConfigs) {
+    return []
+  }
+  return serverConfigsStore.state.chainNetworkConfigs.map((chain: any) => ({
+    title: chain.chainName,
+    value: chain.chainId
+  }))
+})
+
+// 搜索防抖
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+function onSearchKeywordChange() {
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
+  }
+  searchDebounceTimer = setTimeout(() => {
+    productPage.value = 1
+    loadProducts()
+  }, 500) // 500ms 防抖
+}
+
+function onSortChange() {
+  productPage.value = 1
+  loadProducts()
+}
+
+const apiBaseUrl = WebApi.getInstance().baseUrl ?? ''
+
+function resolveProductImage(product: StoreProductSummaryResult) {
+  const url = product.thumbnailUrl
+  if (!url) {
+    return productPlaceholderImage
+  }
+  if (url.startsWith('http')) {
+    return url
+  }
+  if (apiBaseUrl) {
+    const normalizedBase = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl
+    const normalizedPath = url.startsWith('/') ? url : `/${url}`
+    return `${normalizedBase}${normalizedPath}`
+  }
+  return url
+}
+
+const productTotalPages = computed(() => {
+  const total = Math.ceil(productTotal.value / productPageSize.value)
+  return total > 0 ? total : 1
+})
+
+const categoryOptions = computed(() => {
+  const flat: StoreProductCategoryResult[] = []
+  const walk = (source: StoreProductCategoryResult[]) => {
+    for (const item of source) {
+      flat.push(item)
+      if (item.children && item.children.length) {
+        walk(item.children)
+      }
+    }
+  }
+  walk(productCategories.value)
+  return flat
+})
+
+// 订单
+const orderListLoading = ref(false)
+const orderList = ref<StoreOrderSummaryResult[]>([])
+const orderPage = ref(1)
+const orderPageSize = ref(5)
+
+// 购物车
+const cartDialog = ref(false)
+const orderSuccessDialog = ref(false)
+const orderSuccessDetail = ref<StoreOrderDetailResult | null>(null)
+const orderPaymentDialog = ref(false)
+const orderPaymentDetail = ref<StoreOrderDetailResult | null>(null)
+const placingOrder = ref(false)
+
+const isSigned = computed(() => userStore.state.signed)
+
+const cartItems = computed(() => cartStore.items)
+const cartProcessing = computed(() => cartStore.processing)
+const cartTotalAmount = computed(() => cartStore.totalAmount)
+const cartTotalQuantity = computed(() => cartStore.totalQuantity)
+const cartCurrency = computed(() => cartItems.value[0]?.currency ?? 'USDT')
+
+const userUid = computed(() => userStore.state.userInfo?.uid ?? null)
+
+// Chatwoot 气泡处理
 userStore.chatWootReadyFunc = async () => {
   if (
     (activateAIContractTradingDialog.value || primaryTokenSheet.value || assetsManagementSheet.value) &&
@@ -326,12 +959,337 @@ userStore.chatWootReadyFunc = async () => {
   }
 }
 
-// 组件挂载
-onBeforeMount(async () => {})
+// 数据加载
+onBeforeMount(async () => {
+  await loadCategories()
+  await loadProducts()
+})
+
+watch([selectedCategoryId, productPage], async () => {
+  await loadProducts()
+})
+
+watch([filterMinPrice, filterMaxPrice, filterChainId], () => {
+  if (showFilterDialog.value) {
+    return // 在对话框中修改时不触发搜索
+  }
+  productPage.value = 1
+  loadProducts()
+})
+
+watch(userUid, async (uid) => {
+  if (uid) {
+    try {
+      await cartStore.refresh(uid)
+    } catch (error) {
+      console.warn(error)
+    }
+    await loadOrders(uid)
+  } else {
+    cartStore.reset()
+    orderList.value = []
+  }
+}, { immediate: true })
+
+async function loadCategories() {
+  try {
+    const categories = await fetchProductCategories()
+    productCategories.value = categories
+  } catch (error) {
+    console.warn(error)
+    // 访客模式下不显示网络错误提示
+    const errorMessage = (error as Error).message ?? 'Failed to load categories'
+    const isNetworkError = errorMessage.includes('无法连接到服务器') || 
+                          errorMessage.includes('ERR_CONNECTION_REFUSED') ||
+                          errorMessage.includes('ERR_NETWORK')
+    const isGuestMode = !walletStore.state.provider || !walletStore.state.active
+    if (!isGuestMode || !isNetworkError) {
+      FastDialog.errorSnackbar(errorMessage)
+    }
+  }
+}
+
+async function loadProducts() {
+  productLoading.value = true
+  try {
+    const result = await fetchProductList({
+      page: productPage.value,
+      pageSize: productPageSize.value,
+      categoryId: selectedCategoryId.value ?? undefined,
+      keyword: searchKeyword.value || undefined,
+      sortBy: sortBy.value || undefined,
+      minPrice: filterMinPrice.value ?? undefined,
+      maxPrice: filterMaxPrice.value ?? undefined,
+      chainId: filterChainId.value ?? undefined
+    })
+    productList.value = result.items
+    productTotal.value = result.totalCount
+  } catch (error) {
+    console.warn(error)
+    // 访客模式下不显示网络错误提示
+    const errorMessage = (error as Error).message ?? 'Failed to load products'
+    const isNetworkError = errorMessage.includes('无法连接到服务器') || 
+                          errorMessage.includes('ERR_CONNECTION_REFUSED') ||
+                          errorMessage.includes('ERR_NETWORK')
+    const isGuestMode = !walletStore.state.provider || !walletStore.state.active
+    if (!isGuestMode || !isNetworkError) {
+      FastDialog.errorSnackbar(errorMessage)
+    }
+  } finally {
+    productLoading.value = false
+  }
+}
+
+function applyFilter() {
+  showFilterDialog.value = false
+  productPage.value = 1
+  loadProducts()
+}
+
+function resetFilter() {
+  filterMinPrice.value = null
+  filterMaxPrice.value = null
+  filterChainId.value = null
+  applyFilter()
+}
+
+async function loadOrders(uid: number) {
+  orderListLoading.value = true
+  try {
+    const result = await fetchOrderList(uid, orderPage.value, orderPageSize.value)
+    orderList.value = result.items
+  } catch (error) {
+    console.warn(error)
+    // 访客模式下不显示网络错误提示
+    const errorMessage = (error as Error).message ?? 'Failed to load orders'
+    const isNetworkError = errorMessage.includes('无法连接到服务器') || 
+                          errorMessage.includes('ERR_CONNECTION_REFUSED') ||
+                          errorMessage.includes('ERR_NETWORK')
+    const isGuestMode = !walletStore.state.provider || !walletStore.state.active
+    if (!isGuestMode || !isNetworkError) {
+      FastDialog.errorSnackbar(errorMessage)
+    }
+  } finally {
+    orderListLoading.value = false
+  }
+}
+
+const orderHeaders = [
+  { title: 'Order Number', key: 'orderNumber' },
+  { title: 'Amount', key: 'amount' },
+  { title: 'Payment Method', key: 'paymentMethod' },
+  { title: 'Payment Status', key: 'statusText' },
+  { title: 'Created At', key: 'createTime' }
+] as const
+
+const orderTableItems = computed(() => {
+  return orderList.value.map((order) => {
+    const paymentMeta = getPaymentStatusMeta(order.paymentStatus)
+    const orderMeta = getOrderStatusMeta(order.status)
+    return {
+      orderId: order.orderId,
+      orderNumber: order.orderNumber,
+      amount: `${Filter.formatToken(order.totalAmount)} ${order.currency}`,
+      statusText: `${paymentMeta.text} · ${orderMeta.text}`,
+      statusColor: paymentMeta.color,
+      createTime: formatDateTime(order.createTime),
+      paymentMethod:
+        order.paymentProviderName ?? order.paymentMethod ?? getPaymentModeLabel(order.paymentMode)
+    }
+  })
+})
+
+function getOrderStatusMeta(status: StoreOrderStatus | number) {
+  const mapping: Record<number, { text: string; color: string }> = {
+    [StoreOrderStatus.PendingPayment]: { text: 'Pending Payment', color: 'warning' },
+    [StoreOrderStatus.Paid]: { text: 'Paid', color: 'primary' },
+    [StoreOrderStatus.Cancelled]: { text: 'Cancelled', color: 'grey' },
+    [StoreOrderStatus.Completed]: { text: 'Completed', color: 'success' }
+  }
+  return mapping[Number(status)] ?? { text: 'Unknown', color: 'grey' }
+}
+
+function getPaymentStatusMeta(status: StorePaymentStatus | number) {
+  const mapping: Record<number, { text: string; color: string }> = {
+    [StorePaymentStatus.PendingSignature]: { text: 'Pending Signature', color: 'warning' },
+    [StorePaymentStatus.AwaitingOnChainConfirmation]: { text: 'Awaiting Confirmation', color: 'info' },
+    [StorePaymentStatus.Confirmed]: { text: 'Confirmed', color: 'success' },
+    [StorePaymentStatus.Failed]: { text: 'Failed', color: 'error' },
+    [StorePaymentStatus.Cancelled]: { text: 'Cancelled', color: 'grey' }
+  }
+  return mapping[Number(status)] ?? { text: 'Unknown', color: 'grey' }
+}
+
+function getPaymentModeLabel(mode: StorePaymentMode | number) {
+  const mapping: Record<number, string> = {
+    [StorePaymentMode.Traditional]: 'Traditional Payment',
+    [StorePaymentMode.Web3]: 'Web3 Wallet'
+  }
+  return mapping[Number(mode)] ?? 'Unknown'
+}
+
+function formatWalletAddress(address?: string | null) {
+  if (!address) {
+    return ''
+  }
+  if (address.length <= 12) {
+    return address
+  }
+  return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+function formatDateTime(value?: string | null) {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString()
+}
+
+function onSelectCategory(categoryId: number | null) {
+  selectedCategoryId.value = categoryId
+  productPage.value = 1
+}
+
+function handlePagination(page: number) {
+  productPage.value = page
+}
+
+async function handleAddToCart(product: StoreProductSummaryResult) {
+  const uid = userUid.value
+  if (!uid) {
+    FastDialog.warningSnackbar('Please login first before adding to cart.')
+    return
+  }
+  try {
+    await cartStore.addItem(uid, product.productId, 1)
+    FastDialog.successSnackbar('Added to cart')
+  } catch (error) {
+    console.warn(error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to add to cart')
+  }
+}
+
+async function handleUpdateQuantity(item: StoreCartItemResult, nextQuantity: number) {
+  const uid = userUid.value
+  if (!uid) {
+    return
+  }
+  if (nextQuantity <= 0) {
+    await handleRemoveItem(item)
+    return
+  }
+  try {
+    await cartStore.updateItem(uid, item.cartItemId, nextQuantity)
+  } catch (error) {
+    console.warn(error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to update quantity')
+  }
+}
+
+function handleQuantityInput(item: StoreCartItemResult, value: string | number) {
+  const quantity = Math.floor(Number(value))
+  if (!Number.isFinite(quantity)) {
+    return
+  }
+  handleUpdateQuantity(item, quantity)
+}
+
+async function handleRemoveItem(item: StoreCartItemResult) {
+  const uid = userUid.value
+  if (!uid) {
+    return
+  }
+  try {
+    await cartStore.removeItem(uid, item.cartItemId)
+    FastDialog.successSnackbar('Item removed')
+  } catch (error) {
+    console.warn(error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to remove item')
+  }
+}
+
+async function handlePlaceOrder() {
+  const uid = userUid.value
+  if (!uid) {
+    FastDialog.warningSnackbar('Please login first.')
+    return
+  }
+  if (cartItems.value.length === 0) {
+    FastDialog.warningSnackbar('Your cart is empty.')
+    return
+  }
+  placingOrder.value = true
+  try {
+    const walletState = walletStore.state
+    const isWeb3Payment = walletState.active && walletState.provider !== null
+    
+    const order = await cartStore.placeOrder({
+      uid,
+      paymentMode: isWeb3Payment ? StorePaymentMode.Web3 : StorePaymentMode.Traditional,
+      paymentMethod: walletState.providerName ?? walletState.providerType ?? undefined,
+      paymentProviderType: walletState.providerType ?? undefined,
+      paymentProviderName: walletState.providerName ?? undefined,
+      paymentWalletAddress: walletState.address ?? undefined,
+      paymentWalletLabel: walletState.address ? formatWalletAddress(walletState.address) : undefined,
+      chainId: walletState.chainId > 0 ? walletState.chainId : undefined,
+      remark: 'Web checkout'
+    })
+    
+    cartDialog.value = false
+    
+    // 如果是 Web3 支付且需要签名，打开支付对话框
+    if (isWeb3Payment && order.paymentStatus === StorePaymentStatus.PendingSignature) {
+      orderPaymentDetail.value = order
+      orderPaymentDialog.value = true
+    } else {
+      // 传统支付或已完成的支付，显示成功对话框
+      orderSuccessDetail.value = order
+      orderSuccessDialog.value = true
+      FastDialog.successSnackbar('Order created')
+    }
+    
+    await loadOrders(uid)
+    await loadProducts()
+  } catch (error) {
+    console.warn(error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to create order')
+  } finally {
+    placingOrder.value = false
+  }
+}
+
+function handlePaymentSuccess(order: StoreOrderDetailResult) {
+  orderPaymentDialog.value = false
+  orderSuccessDetail.value = order
+  orderSuccessDialog.value = true
+  const uid = userUid.value
+  if (uid) {
+    loadOrders(uid)
+  }
+}
+
+async function handleOpenCart() {
+  const uid = userUid.value
+  if (!uid) {
+    FastDialog.warningSnackbar('Please login first.')
+    return
+  }
+  try {
+    await cartStore.refresh(uid)
+    cartDialog.value = true
+  } catch (error) {
+    console.warn(error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to load cart')
+  }
+}
+
+function closeOrderSuccessDialog() {
+  orderSuccessDialog.value = false
+  orderSuccessDetail.value = null
+}
 
 const display = useDisplay()
 
-// 处理客服图标
 function onIntersect(isIntersecting: any, entries: any, _observer: any) {
   if (!serverConfigsStore.state.customerServiceConfig?.customerServiceEnabled || !window.$chatwoot?.hasLoaded) {
     return
@@ -347,7 +1305,6 @@ function onIntersect(isIntersecting: any, entries: any, _observer: any) {
   }
 }
 
-// 打开选择主要代币Sheet
 const primaryTokenSheet = ref(false)
 async function openPrimaryTokenSheet() {
   if (primaryTokenSheet.value) {
@@ -365,7 +1322,6 @@ async function openPrimaryTokenSheet() {
 
 const activateAIContractTradingDialog = ref(false)
 
-// AI 合约交易
 async function toAiContractTrading() {
   if (userStore.state.userInfo?.primaryTokenStatus !== PrimaryTokenStatus.Completed) {
     FastDialog.warningSnackbar('You have not set a primary token yet, please select the primary token first.')
@@ -381,7 +1337,6 @@ async function toAiContractTrading() {
   router.push({ name: 'AIContractTrading' })
 }
 
-// 免质押挖矿
 async function toStakeFreeMining() {
   if (userStore.state.userInfo?.primaryTokenStatus !== PrimaryTokenStatus.Completed) {
     FastDialog.warningSnackbar('You have not set a primary token yet, please select the primary token first.')
@@ -390,11 +1345,9 @@ async function toStakeFreeMining() {
   router.push({ name: 'StakeFreeMining' })
 }
 
-// 充提
 const assetsManagementSheet = ref(false)
 const assetsManagementMode = ref(AssetsManagementMode.Invalid)
 
-// 到链上
 async function toChain() {
   if (userStore.state.userInfo?.primaryTokenStatus !== PrimaryTokenStatus.Completed) {
     FastDialog.warningSnackbar('You have not set a primary token yet, please select the primary token first.')
@@ -407,7 +1360,6 @@ async function toChain() {
   assetsManagementSheet.value = true
 }
 
-// 到钱包
 async function toWallet() {
   if (userStore.state.userInfo?.primaryTokenStatus !== PrimaryTokenStatus.Completed) {
     FastDialog.warningSnackbar('You have not set a primary token yet, please select the primary token first.')
@@ -420,7 +1372,6 @@ async function toWallet() {
   assetsManagementSheet.value = true
 }
 
-// 复制邀请链接
 async function copyLink(link: string | null) {
   if (!link) {
     FastDialog.errorSnackbar('Copy failed, your browser does not support copying.')
@@ -434,8 +1385,48 @@ async function copyLink(link: string | null) {
   }
 }
 
-// 到历史记录页
 async function toHistory() {
   router.push({ path: '/history', query: { recordType: RecordType.OnChainAssets } })
+}
+
+function openBitgetPay(chain: BitgetDeepLinkChain, defaultAmount?: number) {
+  const config = bitgetDeepLinkConfigs[chain]
+  if (!config) {
+    FastDialog.errorSnackbar('Unsupported chain, please contact support.')
+    return
+  }
+
+  let amountValue: number
+  if (typeof defaultAmount === 'number') {
+    amountValue = defaultAmount
+  } else {
+    const amountInput = window.prompt(
+      `Enter ${config.symbol} amount to pay (Chain: ${config.chainName})`,
+      '10'
+    )
+    if (amountInput === null) {
+      FastDialog.warningSnackbar('Payment cancelled.')
+      return
+    }
+    amountValue = Number(amountInput)
+  }
+
+  if (Number.isNaN(amountValue) || amountValue <= 0) {
+    FastDialog.errorSnackbar('Invalid amount, please enter a positive number.')
+    return
+  }
+
+  const params = new URLSearchParams({
+    action: 'transfer',
+    chain: config.chain,
+    to: config.address,
+    amount: amountValue.toString(),
+    token: config.symbol,
+    redirectUrl: window.location.href
+  })
+
+  const deeplink = `https://bkcode.vip/bitkeep?${params.toString()}`
+  window.open(deeplink, '_blank', 'noopener')
+  FastDialog.successSnackbar('Opening Bitget Wallet. Please complete payment in wallet.')
 }
 </script>

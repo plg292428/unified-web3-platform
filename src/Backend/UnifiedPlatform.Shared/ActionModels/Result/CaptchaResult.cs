@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 验证码响应数据
@@ -16,3 +16,4 @@
         public string? ImageUrl { get; set; }
     }
 }
+

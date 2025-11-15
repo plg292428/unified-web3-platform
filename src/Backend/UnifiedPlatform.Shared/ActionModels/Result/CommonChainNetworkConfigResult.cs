@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 区块链网络配置响应数据
@@ -86,3 +86,4 @@
         public decimal? ManagerTransferFromServiceFee { get; set; }
     }
 }
+

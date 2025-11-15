@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.WebApi.Services;
+namespace UnifiedPlatform.WebApi.Services;
 
 /// <summary>
 /// 临时签名令牌服务
@@ -14,3 +14,4 @@ public static class TempSignTokenServiceExtensions
         services.AddSingleton<ITempSignToken, TempSignToken>();
     }
 }
+

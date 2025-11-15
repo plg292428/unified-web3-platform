@@ -1,6 +1,6 @@
-﻿using SmallTarget.Shared;
+using UnifiedPlatform.Shared;
 
-namespace SmallTarget.WebApi
+namespace UnifiedPlatform.WebApi
 {
     /// <summary>
     /// Http请求上下文 Dapp 用户
@@ -20,3 +20,4 @@ namespace SmallTarget.WebApi
         public WebApiRequestUserType RequestUserType { get; init; }
     }
 }
+

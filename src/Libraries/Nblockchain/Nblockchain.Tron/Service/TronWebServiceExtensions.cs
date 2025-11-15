@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Nblockchain.Tron
@@ -13,3 +13,4 @@ namespace Nblockchain.Tron
         }
     }
 }
+

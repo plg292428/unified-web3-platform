@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端员工类型配置响应数据
@@ -16,3 +16,4 @@
         public required string ManagerTypeDescription { get; set; }
     }
 }
+

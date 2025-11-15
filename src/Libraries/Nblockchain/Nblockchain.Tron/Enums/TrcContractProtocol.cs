@@ -1,4 +1,4 @@
-﻿namespace Nblockchain.Tron
+namespace Nblockchain.Tron
 {
     /// <summary>
     /// TRC 合约协议
@@ -16,3 +16,4 @@
         Trc721 = 721,
     }
 }
+

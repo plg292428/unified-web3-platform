@@ -1,6 +1,7 @@
-﻿namespace UnifiedPlatform.DbService;
+namespace UnifiedPlatform.DbService;
 
 public class Class1
 {
 
 }
+

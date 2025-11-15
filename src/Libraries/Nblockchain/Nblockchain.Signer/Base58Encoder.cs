@@ -1,4 +1,4 @@
-﻿using Nethereum.Hex.HexConvertors.Extensions;
+using Nethereum.Hex.HexConvertors.Extensions;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -238,3 +238,4 @@ namespace Nblockchain.Signer
     }
 
 }
+

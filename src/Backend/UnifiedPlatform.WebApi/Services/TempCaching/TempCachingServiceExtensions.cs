@@ -1,6 +1,6 @@
-﻿using SmallTarget.DbService.Entities;
+using UnifiedPlatform.DbService.Entities;
 
-namespace SmallTarget.WebApi.Services;
+namespace UnifiedPlatform.WebApi.Services;
 
 /// <summary>
 /// 临时缓存服务
@@ -20,3 +20,4 @@ public static class TempCachingServiceExtensions
         services.AddSingleton<ITempCaching, TempCaching>();
     }
 }
+

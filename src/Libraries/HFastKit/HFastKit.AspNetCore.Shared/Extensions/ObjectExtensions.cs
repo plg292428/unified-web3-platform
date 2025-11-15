@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 
 namespace HFastKit.AspNetCore.Shared.Extensions
 {
@@ -21,3 +21,4 @@ namespace HFastKit.AspNetCore.Shared.Extensions
         }
     }
 }
+

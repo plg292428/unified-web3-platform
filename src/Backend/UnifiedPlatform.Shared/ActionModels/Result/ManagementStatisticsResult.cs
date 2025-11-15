@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端查询统计响应数据
@@ -164,3 +164,4 @@
         public decimal ProfitTokens { get; set; }
     }
 }
+

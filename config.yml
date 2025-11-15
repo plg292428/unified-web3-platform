@@ -1,0 +1,7 @@
+tunnel: api
+credentials-file: C:\Users\awei4\.cloudflared\8c186f8d-639c-4c00-8611-25104f4034aa.json
+
+ingress:
+  - hostname: api.a292428dsj.dpdns.org
+    service: http://127.0.0.1:5000
+  - service: http_status:404

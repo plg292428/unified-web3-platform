@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class Manager
 {
@@ -135,3 +135,4 @@ public partial class Manager
 
     public virtual ICollection<User> UserAttributionSalesmanUs { get; set; } = new List<User>();
 }
+

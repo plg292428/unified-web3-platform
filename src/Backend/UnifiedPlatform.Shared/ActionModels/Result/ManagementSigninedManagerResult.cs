@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels.Result
+namespace UnifiedPlatform.Shared.ActionModels.Result
 {
     /// <summary>
     /// 管理端已登录员工响应数据
@@ -46,3 +46,4 @@
         public string? AccessToken { get; set; }
     }
 }
+

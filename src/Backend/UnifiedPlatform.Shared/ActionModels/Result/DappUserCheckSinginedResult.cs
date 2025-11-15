@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 检查登录响应数据
@@ -16,3 +16,4 @@
         public string? TokenText { get; set; }
     }
 }
+

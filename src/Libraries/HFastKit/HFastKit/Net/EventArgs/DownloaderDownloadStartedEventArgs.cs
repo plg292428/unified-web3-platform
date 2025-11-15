@@ -1,4 +1,4 @@
-﻿namespace HFastKit.Net;
+namespace HFastKit.Net;
 
 /// <summary>
 /// Easy Downloader 下载开始事件参数
@@ -19,3 +19,4 @@ public class DownloaderDownloadStartedEventArgs : EventArgs
         FileLength = fileLength;
     }
 }
+

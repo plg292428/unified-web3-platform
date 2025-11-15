@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 
 namespace HFastKit.AspNetCore.Services.Captcha
 {
@@ -29,3 +29,4 @@ namespace HFastKit.AspNetCore.Services.Captcha
         public CaptchaVerifyResult Verify(string captchaText, string captchaToken, bool caseSensitive = false);
     }
 }
+

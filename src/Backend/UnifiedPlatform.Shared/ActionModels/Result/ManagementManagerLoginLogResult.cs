@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端员工登录日志响应数据
@@ -41,3 +41,4 @@
         public DateTime CreateTime { get; set; }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.Versioning;
 
 namespace HFastKit.Net;
@@ -306,3 +306,4 @@ public class EasyDownloader
         GC.SuppressFinalize(this);
     }
 }
+

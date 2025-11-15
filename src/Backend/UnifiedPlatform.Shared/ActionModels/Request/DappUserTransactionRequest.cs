@@ -1,7 +1,7 @@
-﻿using HFastKit.AspNetCore.Shared.Text;
+using HFastKit.AspNetCore.Shared.Text;
 using System.ComponentModel.DataAnnotations;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 设置主要代币请求
@@ -38,3 +38,4 @@ namespace SmallTarget.Shared.ActionModels
         }
     }
 }
+

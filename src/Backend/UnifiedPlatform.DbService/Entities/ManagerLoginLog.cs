@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class ManagerLoginLog
 {
@@ -37,3 +37,4 @@ public partial class ManagerLoginLog
 
     public virtual Manager UidNavigation { get; set; } = null!;
 }
+

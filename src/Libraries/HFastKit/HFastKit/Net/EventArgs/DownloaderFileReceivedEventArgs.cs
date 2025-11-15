@@ -1,4 +1,4 @@
-﻿namespace HFastKit.Net;
+namespace HFastKit.Net;
 
 /// <summary>
 /// Easy Downloader 接收文件事件参数
@@ -33,3 +33,4 @@ public class DownloaderFileReceivedEventArgs : EventArgs
         DownloadSpeed = downloadSpeed;
     }
 }
+

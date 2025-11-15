@@ -1,4 +1,4 @@
-﻿using Nethereum.Signer.Crypto;
+using Nethereum.Signer.Crypto;
 using Nethereum.Util;
 using Org.BouncyCastle.Math;
 using System;
@@ -23,3 +23,4 @@ namespace Nblockchain.Signer
         }
     }
 }
+

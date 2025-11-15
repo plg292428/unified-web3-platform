@@ -1,6 +1,6 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端查询代理账变请求
@@ -23,3 +23,4 @@ namespace SmallTarget.Shared.ActionModels
         public ManagerBalanceChangeType? ChangeType { get; set; }
     }
 }
+

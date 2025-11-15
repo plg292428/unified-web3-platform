@@ -1,6 +1,6 @@
-﻿using SmallTarget.Shared;
+using UnifiedPlatform.Shared;
 
-namespace SmallTarget.WebApi.Businesses
+namespace UnifiedPlatform.WebApi.Businesses
 {
     /// <summary>
     /// Http请求上下文 Manager
@@ -16,3 +16,4 @@ namespace SmallTarget.WebApi.Businesses
         public ManagerType ManagerType { get; init; }
     }
 }
+

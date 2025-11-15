@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace HFastKit.AspNetCore.Shared.Text;
 
@@ -181,3 +181,4 @@ public static class FormatValidate
         }
     }
 }
+

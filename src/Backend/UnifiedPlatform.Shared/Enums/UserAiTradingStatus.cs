@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 用户AI交易状态
@@ -26,3 +26,4 @@ namespace SmallTarget.Shared
         Pending = 1,
     }
 }
+

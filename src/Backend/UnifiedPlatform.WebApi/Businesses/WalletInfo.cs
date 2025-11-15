@@ -1,7 +1,7 @@
-﻿using HFastKit.AspNetCore.Shared.Text;
-using SmallTarget.Shared;
+using HFastKit.AspNetCore.Shared.Text;
+using UnifiedPlatform.Shared;
 
-namespace SmallTarget.WebApi
+namespace UnifiedPlatform.WebApi
 {
     /// <summary>
     /// 钱包信息
@@ -34,3 +34,4 @@ namespace SmallTarget.WebApi
         }
     }
 }
+

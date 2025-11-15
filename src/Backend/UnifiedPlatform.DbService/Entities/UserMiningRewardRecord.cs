@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class UserMiningRewardRecord
 {
@@ -43,3 +43,4 @@ public partial class UserMiningRewardRecord
 
     public virtual User UidNavigation { get; set; } = null!;
 }
+

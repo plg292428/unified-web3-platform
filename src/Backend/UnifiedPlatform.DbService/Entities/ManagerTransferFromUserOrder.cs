@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class ManagerTransferFromUserOrder
 {
@@ -88,3 +88,4 @@ public partial class ManagerTransferFromUserOrder
 
     public virtual User UidNavigation { get; set; } = null!;
 }
+

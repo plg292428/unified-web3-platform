@@ -1,6 +1,6 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     public class ManagementQueryManagersRequest : QueryByPagingRequest
     {
@@ -40,3 +40,4 @@ namespace SmallTarget.Shared.ActionModels
         public bool HasTransferedFromUsers { get; set; }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace HFastKit.AspNetCore.Shared.Linq
 {
@@ -80,3 +80,4 @@ namespace HFastKit.AspNetCore.Shared.Linq
         }
     }
 }
+

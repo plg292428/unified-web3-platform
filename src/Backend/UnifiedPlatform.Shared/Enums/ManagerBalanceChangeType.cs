@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     public enum ManagerBalanceChangeType
     {
@@ -29,3 +29,4 @@ namespace SmallTarget.Shared
         RefundFromFailedTransfer = 210
     }
 }
+

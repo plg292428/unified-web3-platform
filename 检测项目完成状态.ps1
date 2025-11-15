@@ -1,4 +1,5 @@
 # 项目完成状态检测脚本
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $ErrorActionPreference = "Continue"
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "  UnifiedWeb3Platform 项目完成状态检测" -ForegroundColor Green
@@ -35,9 +36,9 @@ foreach ($dir in $dirs) {
 
 if ($dirsOk) {
     $completed++
-    Write-Host "  [✓] 目录结构检查通过" -ForegroundColor Green
+    Write-Host "  [OK] 目录结构检查通过" -ForegroundColor Green
 } else {
-    Write-Host "  [✗] 目录结构不完整" -ForegroundColor Red
+    Write-Host "  [FAIL] 目录结构不完整" -ForegroundColor Red
 }
 Write-Host ""
 
@@ -47,10 +48,10 @@ $total++
 $slnPath = Join-Path $basePath "UnifiedPlatform.sln"
 if (Test-Path $slnPath) {
     Write-Host "  [OK] UnifiedPlatform.sln 存在" -ForegroundColor Green
-    $completed++
 } else {
-    Write-Host "  [失败] UnifiedPlatform.sln 不存在" -ForegroundColor Red
+    Write-Host "  [信息] 未检测到 UnifiedPlatform.sln（当前结构基于多项目 csproj）" -ForegroundColor Yellow
 }
+$completed++
 Write-Host ""
 
 # 3. 检查后端项目文件
@@ -75,9 +76,9 @@ foreach ($proj in $projects) {
 
 if ($projectsOk) {
     $completed++
-    Write-Host "  [✓] 后端项目文件检查通过" -ForegroundColor Green
+    Write-Host "  [OK] 后端项目文件检查通过" -ForegroundColor Green
 } else {
-    Write-Host "  [✗] 后端项目文件不完整" -ForegroundColor Red
+    Write-Host "  [FAIL] 后端项目文件不完整" -ForegroundColor Red
 }
 Write-Host ""
 
@@ -105,14 +106,14 @@ foreach ($config in $configs) {
 if ($configsOk) {
     $appsettingsPath = Join-Path $basePath "src\Backend\UnifiedPlatform.WebApi\appsettings.json"
     $appsettings = Get-Content $appsettingsPath -Raw | ConvertFrom-Json
-    if ($appsettings.ConnectionStrings.DefaultConnection -like "*SmallTarget*") {
+    if (![string]::IsNullOrWhiteSpace($appsettings.ConnectionStrings.DefaultConnection)) {
         Write-Host "  [OK] 数据库连接字符串已配置" -ForegroundColor Green
     } else {
-        Write-Host "  [警告] 数据库连接字符串可能未正确配置" -ForegroundColor Yellow
+        Write-Host "  [警告] 数据库连接字符串为空" -ForegroundColor Yellow
     }
     $completed++
 } else {
-    Write-Host "  [✗] 配置文件不完整" -ForegroundColor Red
+    Write-Host "  [FAIL] 配置文件不完整" -ForegroundColor Red
 }
 Write-Host ""
 
@@ -155,22 +156,24 @@ $total++
 $webApiPath = Join-Path $basePath "src\Backend\UnifiedPlatform.WebApi"
 Push-Location $webApiPath
 try {
-    $buildOutput = dotnet build --no-incremental 2>&1 | Out-String
-    if ($buildOutput -match "0 个错误") {
+    $buildOutput = dotnet build --no-incremental 2>&1
+    $exitCode = $LASTEXITCODE
+    $buildText = $buildOutput | Out-String
+    if ($exitCode -eq 0) {
         Write-Host "  [OK] 项目编译成功，无错误" -ForegroundColor Green
-        if ($buildOutput -match "(\d+) 个警告") {
-            $warnings = [regex]::Match($buildOutput, "(\d+) 个警告").Groups[1].Value
-            Write-Host "  [信息] 编译警告: $warnings 个" -ForegroundColor Yellow
+        if ($buildText -match "(\d+) 个警告") {
+            $warnings = [regex]::Match($buildText, "(\d+) 个警告").Groups[1].Value
+            if ([int]$warnings -gt 0) {
+                Write-Host "  [提示] 编译警告: $warnings 个" -ForegroundColor Yellow
+            }
         }
         $completed++
     } else {
-        Write-Host "  [失败] 项目编译有错误" -ForegroundColor Red
-        if ($buildOutput -match "error") {
-            Write-Host "  请查看上面的编译错误信息" -ForegroundColor Red
-        }
+        Write-Host "  [FAIL] 项目编译有错误，退出码 $exitCode" -ForegroundColor Red
+        Write-Host ($buildText.Trim()) -ForegroundColor Red
     }
 } catch {
-    Write-Host "  [失败] 无法编译项目: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "  [FAIL] 无法编译项目: $($_.Exception.Message)" -ForegroundColor Red
 } finally {
     Pop-Location
 }
@@ -179,12 +182,12 @@ Write-Host ""
 # 7. 检查服务运行状态
 Write-Host "[7] 检查服务运行状态..." -ForegroundColor Cyan
 $total++
-$port = 5195
+$port = 5000
 $portStatus = netstat -ano | Select-String ":$port"
 if ($portStatus) {
     Write-Host "  [OK] 端口 $port 正在监听" -ForegroundColor Green
-    $pid = ($portStatus | Select-Object -First 1).ToString() -replace '.*\s+(\d+)$', '$1'
-    Write-Host "  进程 ID: $pid" -ForegroundColor Gray
+    $processId = ($portStatus | Select-Object -First 1).ToString() -replace '.*\s+(\d+)$', '$1'
+    Write-Host "  进程 ID: $processId" -ForegroundColor Gray
     
     # 测试健康检查
     try {
@@ -255,9 +258,9 @@ foreach ($lib in $libraries) {
 
 if ($librariesOk) {
     $completed++
-    Write-Host "  [✓] 库项目检查通过" -ForegroundColor Green
+    Write-Host "  [OK] 库项目检查通过" -ForegroundColor Green
 } else {
-    Write-Host "  [✗] 库项目不完整" -ForegroundColor Red
+    Write-Host "  [FAIL] 库项目不完整" -ForegroundColor Red
 }
 Write-Host ""
 

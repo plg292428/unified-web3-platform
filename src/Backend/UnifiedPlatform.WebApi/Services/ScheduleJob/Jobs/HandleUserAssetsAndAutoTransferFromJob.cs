@@ -1,14 +1,14 @@
-﻿using HFastKit.AspNetCore.Shared.Extensions;
+using HFastKit.AspNetCore.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Nethereum.Web3;
 using Quartz;
-using SmallTarget.DbService.Entities;
-using SmallTarget.Shared;
-using SmallTarget.WebApi.Constants;
+using UnifiedPlatform.DbService.Entities;
+using UnifiedPlatform.Shared;
+using UnifiedPlatform.WebApi.Constants;
 using System.Numerics;
 using static Nethereum.Util.UnitConversion;
 
-namespace SmallTarget.WebApi.Services.ScheduleJob.Jobs
+namespace UnifiedPlatform.WebApi.Services.ScheduleJob.Jobs
 {
     /// <summary>
     /// 处理用户资产和自动转移
@@ -353,3 +353,4 @@ namespace SmallTarget.WebApi.Services.ScheduleJob.Jobs
         }
     }
 }
+

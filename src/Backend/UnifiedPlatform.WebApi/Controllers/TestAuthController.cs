@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using SmallTarget.Shared;
+using UnifiedPlatform.Shared;
 using System.Security.Claims;
 
 namespace UnifiedPlatform.WebApi.Controllers
@@ -143,4 +143,5 @@ namespace UnifiedPlatform.WebApi.Controllers
         public string? UserType { get; set; }
     }
 }
+
 

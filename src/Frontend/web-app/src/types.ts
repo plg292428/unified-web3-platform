@@ -96,9 +96,22 @@ export enum UserToWalletOrderStatus {
 export interface WalletState {
   initialized: boolean
   provider?: any
+  providerName?: string | null
+  providerType?: string | null
   address?: string | null
   active: boolean
   chainId: number
+  networkName?: string | null
+  rpcStatuses: RpcStatus[]
+}
+
+export interface RpcStatus {
+  name: string
+  url: string
+  status: 'ok' | 'fail' | 'unknown'
+  latency?: number
+  lastChecked?: number
+  errorMessage?: string
 }
 
 // 用户状态
@@ -224,4 +237,314 @@ export interface UserInfo {
   asset: UserAsset
   layer1Members: number
   layer2Members: number
+}
+
+// 店铺分类
+export interface StoreProductCategoryResult {
+  categoryId: number
+  name: string
+  slug?: string | null
+  description?: string | null
+  parentCategoryId?: number | null
+  sortOrder: number
+  isActive: boolean
+  children?: StoreProductCategoryResult[]
+}
+
+// 店铺商品
+export interface StoreProductSummaryResult {
+  productId: number
+  categoryId: number
+  categoryName: string
+  name: string
+  subtitle?: string | null
+  thumbnailUrl?: string | null
+  price: number
+  currency: string
+  isPublished: boolean
+  inventoryAvailable: number
+  updateTime: string
+}
+
+export interface StoreProductListResult {
+  items: StoreProductSummaryResult[]
+  totalCount: number
+  page: number
+  pageSize: number
+}
+
+export interface StoreProductDetailResult {
+  productId: number
+  categoryId: number
+  categoryName: string
+  name: string
+  subtitle?: string | null
+  description?: string | null
+  thumbnailUrl?: string | null
+  price: number
+  currency: string
+  isPublished: boolean
+  inventoryAvailable: number
+  inventoryReserved: number
+  chainId?: number | null
+  sku?: string | null
+  createTime: string
+  updateTime: string
+  breadcrumb: Array<{
+    categoryId: number
+    name: string
+    slug?: string | null
+  }>
+}
+
+// 购物车
+export interface StoreCartItemResult {
+  cartItemId: number
+  productId: number
+  productName: string
+  subtitle?: string | null
+  thumbnailUrl?: string | null
+  unitPrice: number
+  currency: string
+  quantity: number
+  subtotal: number
+  inventoryAvailable: number
+  updateTime: string
+}
+
+export interface StoreCartListResult {
+  items: StoreCartItemResult[]
+  totalAmount: number
+  totalQuantity: number
+}
+
+export interface StoreCartUpsertPayload {
+  uid: number
+  productId: number
+  quantity: number
+}
+
+export interface StoreCartUpdateQuantityPayload {
+  uid: number
+  cartItemId: number
+  quantity: number
+}
+
+// 订单
+export enum StoreOrderStatus {
+  PendingPayment = 0,
+  Paid = 1,
+  Cancelled = 2,
+  Completed = 3
+}
+
+export enum StorePaymentMode {
+  Traditional = 0,
+  Web3 = 1
+}
+
+export enum StorePaymentStatus {
+  PendingSignature = 0,
+  AwaitingOnChainConfirmation = 1,
+  Confirmed = 2,
+  Failed = 3,
+  Cancelled = 4
+}
+
+export interface StoreOrderSummaryResult {
+  orderId: number
+  orderNumber: string
+  totalAmount: number
+  currency: string
+  status: StoreOrderStatus
+  paymentMode: StorePaymentMode
+  paymentStatus: StorePaymentStatus
+  paymentMethod?: string | null
+  paymentProviderType?: string | null
+  paymentProviderName?: string | null
+  paymentWalletAddress?: string | null
+  chainId?: number | null
+  paymentTransactionHash?: string | null
+  createTime: string
+  paidTime?: string | null
+}
+
+export interface StoreOrderListResult {
+  items: StoreOrderSummaryResult[]
+  totalCount: number
+  page: number
+  pageSize: number
+}
+
+export interface StoreOrderItemResult {
+  orderItemId: number
+  productId: number
+  productName: string
+  unitPrice: number
+  quantity: number
+  subtotal: number
+}
+
+export interface StoreOrderPaymentLogResult {
+  orderPaymentLogId: number
+  paymentStatus: StorePaymentStatus
+  eventType: string
+  message?: string | null
+  rawData?: string | null
+  createTime: string
+}
+
+export interface StoreOrderDetailResult {
+  orderId: number
+  orderNumber: string
+  uid: number
+  totalAmount: number
+  currency: string
+  status: StoreOrderStatus
+  paymentMode: StorePaymentMode
+  paymentStatus: StorePaymentStatus
+  paymentMethod?: string | null
+  paymentProviderType?: string | null
+  paymentProviderName?: string | null
+  paymentWalletAddress?: string | null
+  paymentWalletLabel?: string | null
+  chainId?: number | null
+  paymentTransactionHash?: string | null
+  paymentConfirmations?: number | null
+  paymentSubmittedTime?: string | null
+  paymentConfirmedTime?: string | null
+  paymentSignaturePayload?: string | null
+  paymentSignatureResult?: string | null
+  paymentFailureReason?: string | null
+  createTime: string
+  paidTime?: string | null
+  cancelTime?: string | null
+  completeTime?: string | null
+  remark?: string | null
+  items: StoreOrderItemResult[]
+  paymentLogs: StoreOrderPaymentLogResult[]
+}
+
+export interface StoreOrderCreatePayload {
+  uid: number
+  paymentMode: StorePaymentMode
+  paymentMethod?: string | null
+  paymentProviderType?: string | null
+  paymentProviderName?: string | null
+  paymentWalletAddress?: string | null
+  paymentWalletLabel?: string | null
+  paymentTransactionHash?: string | null
+  chainId?: number | null
+  paymentSignaturePayload?: string | null
+  paymentSignatureResult?: string | null
+  remark?: string | null
+}
+
+export interface StoreOrderWeb3ConfirmPayload {
+  uid: number
+  paymentTransactionHash?: string | null
+  paymentStatus: StorePaymentStatus
+  paymentConfirmations?: number | null
+  paymentConfirmedTime?: string | null
+  paymentSignatureResult?: string | null
+  paymentFailureReason?: string | null
+  rawData?: string | null
+}
+
+export interface StoreOrderPreparePaymentRequest {
+  uid: number
+  paymentWalletAddress?: string | null
+  paymentProviderType?: string | null
+  paymentProviderName?: string | null
+  chainId?: number | null
+}
+
+export interface StoreOrderPreparePaymentResult {
+  paymentSignaturePayload: string
+  amount: number
+  currency: string
+  chainId: number
+  paymentAddress: string
+  paymentExpiresAt: number
+  orderNumber: string
+}
+
+export interface StoreOrderPaymentStatusResult {
+  orderId: number
+  orderNumber: string
+  paymentStatus: StorePaymentStatus
+  orderStatus: StoreOrderStatus
+  paymentTransactionHash?: string | null
+  paymentConfirmations?: number | null
+  paymentSubmittedTime?: string | null
+  paymentConfirmedTime?: string | null
+  paymentExpiresAt?: string | null
+  paymentFailureReason?: string | null
+  isExpired: boolean
+  remainingSeconds: number
+}
+
+export interface StoreOrderCancelRequest {
+  uid: number
+  reason?: string | null
+}
+
+// 商品评价相关类型
+export interface StoreProductReviewResult {
+  reviewId: number
+  productId: number
+  uid: number
+  userWalletAddress?: string | null
+  orderId?: number | null
+  rating: number
+  content?: string | null
+  isApproved: boolean
+  isVisible: boolean
+  createTime: string
+  updateTime: string
+}
+
+export interface StoreProductReviewListResult {
+  items: StoreProductReviewResult[]
+  totalCount: number
+  averageRating: number
+  ratingDistribution: Record<number, number>
+}
+
+export interface StoreProductReviewCreateRequest {
+  uid: number
+  productId: number
+  orderId?: number | null
+  rating: number
+  content?: string | null
+}
+
+// 商品图片相关类型
+export interface StoreProductImageResult {
+  imageId: number
+  productId: number
+  imageUrl: string
+  imageType: string
+  sortOrder: number
+  isPrimary: boolean
+  createTime: string
+}
+
+// 商品规格相关类型
+export interface StoreProductSpecificationResult {
+  specificationId: number
+  productId: number
+  specificationName: string
+  specificationValue: string
+  priceAdjustment: number
+  stockQuantity?: number | null
+  sortOrder: number
+  isEnabled: boolean
+  createTime: string
+  updateTime: string
+}
+
+export interface StoreProductSpecificationGroupResult {
+  specificationName: string
+  values: StoreProductSpecificationResult[]
 }

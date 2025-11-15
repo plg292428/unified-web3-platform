@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Quartz;
-using SmallTarget.DbService.Entities;
+using UnifiedPlatform.DbService.Entities;
 
-namespace SmallTarget.WebApi.Services.ScheduleJob.Jobs
+namespace UnifiedPlatform.WebApi.Services.ScheduleJob.Jobs
 {
     /// <summary>
     /// 每日更新
@@ -93,3 +93,4 @@ namespace SmallTarget.WebApi.Services.ScheduleJob.Jobs
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using Google.Protobuf;
+using Google.Protobuf;
 using Nblockchain.Signer;
 using Nblockchain.Tron.Protocol;
 using Nethereum.Hex.HexConvertors.Extensions;
@@ -36,3 +36,4 @@ namespace Nblockchain.Tron
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿namespace Nblockchain.Signer
+namespace Nblockchain.Signer
 {
     /// <summary>
     /// Tron 网络
@@ -16,3 +16,4 @@
         TestNet = 2,
     }
 }
+

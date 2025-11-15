@@ -1,4 +1,4 @@
-﻿using Nblockchain.Signer;
+using Nblockchain.Signer;
 using Nethereum.Hex.HexConvertors.Extensions;
 
 namespace Nblockchain.Tron
@@ -80,3 +80,4 @@ namespace Nblockchain.Tron
         }
     }
 }
+

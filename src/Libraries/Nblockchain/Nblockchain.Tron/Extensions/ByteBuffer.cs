@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace Nblockchain
@@ -750,3 +750,4 @@ namespace Nblockchain
 		}
 	}
 }
+

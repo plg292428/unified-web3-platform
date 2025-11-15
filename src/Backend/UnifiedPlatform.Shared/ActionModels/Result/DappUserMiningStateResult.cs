@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户挖矿状态响应数据
@@ -21,3 +21,4 @@
         public  string? StopedTip { get; set; }
     }
 }
+

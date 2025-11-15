@@ -1,4 +1,4 @@
-﻿using HFastKit.AspNetCore.Shared.Common;
+using HFastKit.AspNetCore.Shared.Common;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Web;
@@ -119,3 +119,4 @@ namespace HFastKit.AspNetCore.Shared.Extensions
         }
     }
 }
+

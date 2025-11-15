@@ -1,4 +1,4 @@
-﻿namespace Nblockchain
+namespace Nblockchain
 {
     /// <summary>
     /// 交易状态
@@ -31,3 +31,4 @@
         Succeed = 200,
     }
 }
+

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class ChainWalletConfig
 {
@@ -54,3 +54,4 @@ public partial class ChainWalletConfig
 
     public virtual ChainNetworkConfig Chain { get; set; } = null!;
 }
+

@@ -52,6 +52,18 @@ export default defineConfig({
     ],
   },
   server: {
-    port: 5173,
+    port: 5173, // HTTP 端口（本地开发，不使用 HTTPS）
+    host: '0.0.0.0', // 允许外部访问
+    https: false, // 禁用 HTTPS（本地开发）
+    strictPort: false, // 如果端口被占用，尝试其他端口
+    // 配置代理，将 API 请求转发到后端
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
 })
+

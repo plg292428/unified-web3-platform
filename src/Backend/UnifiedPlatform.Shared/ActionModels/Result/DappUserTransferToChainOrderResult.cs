@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户转账到链上订单响应数据
@@ -41,3 +41,4 @@
         public DateTime CreateTime { get; set; }
     }
 }
+

@@ -1,12 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SmallTarget.DbService;
-using SmallTarget.DbService.Entities;
+using UnifiedPlatform.DbService.Entities;
 using System.Diagnostics.CodeAnalysis;
 using HFastKit.Text;
 using Nethereum.Web3.Accounts;
 using HFastKit.AspNetCore.Shared.Text;
 
-namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// 临时缓存接口
@@ -462,3 +462,4 @@ namespace SmallTarget.WebApi.Services
         }
     }
 }
+

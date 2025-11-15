@@ -1,13 +1,13 @@
-﻿using HFastKit.AspNetCore.Shared.Text;
+using HFastKit.AspNetCore.Shared.Text;
 using Nethereum.Contracts;
 using Nethereum.Optimism.L2StandardERC20.ContractDefinition;
 using Nethereum.StandardTokenEIP20;
 using Nethereum.Web3;
-using SmallTarget.Shared;
+using UnifiedPlatform.Shared;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 
-namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// Web3 提供方
@@ -510,3 +510,4 @@ namespace SmallTarget.WebApi.Services
         }
     }
 }
+

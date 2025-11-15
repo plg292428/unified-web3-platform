@@ -1,4 +1,4 @@
-﻿using Google.Protobuf;
+using Google.Protobuf;
 using Nblockchain.Signer;
 using Nblockchain.Tron.Protocol;
 using Nethereum.ABI.FunctionEncoding;
@@ -294,3 +294,4 @@ namespace Nblockchain.Tron.Contracts
     }
 
 }
+

@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 身份验证策略名
@@ -41,3 +41,4 @@
         public const string Developer = "Developer";
     }
 }
+

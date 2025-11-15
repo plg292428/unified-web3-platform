@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using SmallTarget.DbService.Entities;
+using UnifiedPlatform.DbService.Entities;
 
 namespace UnifiedPlatform.DbService;
 
@@ -23,4 +23,5 @@ public class DbContextFactory : IDesignTimeDbContextFactory<StDbContext>
         return new StDbContext(optionsBuilder.Options);
     }
 }
+
 

@@ -1,4 +1,4 @@
-﻿using Google.Protobuf;
+using Google.Protobuf;
 using Grpc.Core;
 using Nblockchain.Signer;
 using Nblockchain.Tron.Contracts;
@@ -393,3 +393,4 @@ namespace Nblockchain.Tron
         }
     }
 }
+

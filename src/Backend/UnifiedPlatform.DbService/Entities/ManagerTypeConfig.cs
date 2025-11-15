@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class ManagerTypeConfig
 {
@@ -22,3 +22,4 @@ public partial class ManagerTypeConfig
 
     public virtual ICollection<Manager> Managers { get; set; } = new List<Manager>();
 }
+

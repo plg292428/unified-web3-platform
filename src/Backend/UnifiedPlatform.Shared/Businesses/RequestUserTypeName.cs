@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 请求用户类型名称
@@ -36,3 +36,4 @@
         public const string Developer = "Developer";
     }
 }
+

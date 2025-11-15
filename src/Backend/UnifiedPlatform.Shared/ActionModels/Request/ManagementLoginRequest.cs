@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端员工登录请求
@@ -26,3 +26,4 @@
         public required string CaptchaToken { get; set; }
     }
 }
+

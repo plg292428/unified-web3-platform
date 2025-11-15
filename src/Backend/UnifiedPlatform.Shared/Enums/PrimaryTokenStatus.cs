@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 主要代币状态
@@ -26,3 +26,4 @@ namespace SmallTarget.Shared
         Completed = 200,
     }
 }
+

@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户系统短消息响应数据
@@ -36,3 +36,4 @@
         public DateTime CreateTime { get; set; }
     }
 }
+

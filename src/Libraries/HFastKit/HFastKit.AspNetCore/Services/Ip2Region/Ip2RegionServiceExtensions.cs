@@ -1,4 +1,4 @@
-﻿using IP2Region.Net.Abstractions;
+using IP2Region.Net.Abstractions;
 using IP2Region.Net.XDB;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text;
@@ -58,3 +58,4 @@ namespace HFastKit.AspNetCore.Services.Captcha
         }
     }
 }
+

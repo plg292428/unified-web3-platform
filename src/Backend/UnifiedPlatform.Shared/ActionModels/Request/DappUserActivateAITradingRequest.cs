@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户激活 AI 合约交易请求
@@ -11,3 +11,4 @@
         public required string ActivationCode { get; set; }
     }
 }
+

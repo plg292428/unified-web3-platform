@@ -1,6 +1,6 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 查询用户系统短消息请求
@@ -13,3 +13,4 @@ namespace SmallTarget.Shared.ActionModels
         public bool? OnlyUnread { get; set; }
     }
 }
+

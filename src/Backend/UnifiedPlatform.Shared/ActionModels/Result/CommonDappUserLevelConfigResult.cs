@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户等级配置响应数据
@@ -61,3 +61,4 @@
         public decimal MaxEachMiningRewardRate { get; set; }
     }
 }
+

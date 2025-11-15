@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using UnifiedPlatform.Shared.Enums;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class StDbContext : DbContext
 {
@@ -18,6 +19,38 @@ public partial class StDbContext : DbContext
     public virtual DbSet<ChainWalletConfig> ChainWalletConfigs { get; set; }
 
     public virtual DbSet<GlobalConfig> GlobalConfigs { get; set; }
+
+    public virtual DbSet<Order> Orders { get; set; }
+
+    public virtual DbSet<OrderItem> OrderItems { get; set; }
+
+    public virtual DbSet<OrderPaymentLog> OrderPaymentLogs { get; set; }
+
+    public virtual DbSet<OrderShipping> OrderShippings { get; set; }
+
+    public virtual DbSet<ShippingTrackingLog> ShippingTrackingLogs { get; set; }
+
+    public virtual DbSet<ProductCategory> ProductCategories { get; set; }
+
+    public virtual DbSet<Product> Products { get; set; }
+
+    public virtual DbSet<ProductInventory> ProductInventories { get; set; }
+
+    public virtual DbSet<ProductReview> ProductReviews { get; set; }
+
+    public virtual DbSet<ProductReviewImage> ProductReviewImages { get; set; }
+
+    public virtual DbSet<ProductReviewReply> ProductReviewReplies { get; set; }
+
+    public virtual DbSet<ProductReviewVote> ProductReviewVotes { get; set; }
+
+    public virtual DbSet<ProductImage> ProductImages { get; set; }
+
+    public virtual DbSet<ProductSpecification> ProductSpecifications { get; set; }
+
+    public virtual DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
+
+    public virtual DbSet<WalletUserProfile> WalletUserProfiles { get; set; }
 
     public virtual DbSet<Manager> Managers { get; set; }
 
@@ -1073,8 +1106,551 @@ public partial class StDbContext : DbContext
                 .HasConstraintName("FK_UserSysteamMessage_User");
         });
 
+        // 购物相关实体配置
+        modelBuilder.Entity<ProductCategory>(entity =>
+        {
+            entity.HasKey(e => e.CategoryId).HasName("PK_ProductCategory_CategoryId");
+
+            entity.ToTable("ProductCategory");
+
+            entity.Property(e => e.CategoryId)
+                .HasComment("分类ID");
+            entity.Property(e => e.Name)
+                .HasMaxLength(64)
+                .HasComment("分类名称");
+            entity.Property(e => e.Slug)
+                .HasMaxLength(128)
+                .HasComment("分类别名");
+            entity.Property(e => e.Description)
+                .HasMaxLength(512)
+                .HasComment("分类描述");
+            entity.Property(e => e.ParentCategoryId)
+                .HasComment("父级分类ID");
+            entity.Property(e => e.SortOrder)
+                .HasDefaultValue(0)
+                .HasComment("排序");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasComment("是否启用");
+            entity.Property(e => e.CreateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("创建时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("更新时间")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.ParentCategory)
+                .WithMany(p => p.Children)
+                .HasForeignKey(d => d.ParentCategoryId)
+                .HasConstraintName("FK_ProductCategory_ProductCategory");
+
+            entity.HasIndex(e => e.Slug)
+                .IsUnique()
+                .HasFilter("[Slug] IS NOT NULL");
+        });
+
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.HasKey(e => e.ProductId).HasName("PK_Product_ProductId");
+
+            entity.ToTable("Product");
+
+            entity.Property(e => e.ProductId)
+                .HasComment("商品ID");
+            entity.Property(e => e.CategoryId)
+                .HasComment("分类ID");
+            entity.Property(e => e.Name)
+                .HasMaxLength(128)
+                .HasComment("商品名称");
+            entity.Property(e => e.Subtitle)
+                .HasMaxLength(256)
+                .HasComment("副标题");
+            entity.Property(e => e.Description)
+                .HasComment("商品描述");
+            entity.Property(e => e.ThumbnailUrl)
+                .HasMaxLength(256)
+                .HasComment("缩略图");
+            entity.Property(e => e.Price)
+                .HasComment("销售价格")
+                .HasColumnType("decimal(19,6)");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(16)
+                .HasDefaultValue("USDT")
+                .HasComment("币种");
+            entity.Property(e => e.ChainId)
+                .HasComment("结算链ID");
+            entity.Property(e => e.Sku)
+                .HasMaxLength(64)
+                .HasComment("库存单位");
+            entity.Property(e => e.IsPublished)
+                .HasComment("是否上架");
+            entity.Property(e => e.CreateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("创建时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("更新时间")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Category)
+                .WithMany(p => p.Products)
+                .HasForeignKey(d => d.CategoryId)
+                .HasConstraintName("FK_Product_ProductCategory");
+
+            entity.HasOne(d => d.Chain)
+                .WithMany()
+                .HasForeignKey(d => d.ChainId)
+                .HasConstraintName("FK_Product_ChainNetworkConfig");
+
+            entity.HasIndex(e => e.CategoryId);
+            entity.HasIndex(e => e.ChainId);
+        });
+
+        modelBuilder.Entity<ProductInventory>(entity =>
+        {
+            entity.HasKey(e => e.InventoryId).HasName("PK_ProductInventory_InventoryId");
+
+            entity.ToTable("ProductInventory");
+
+            entity.Property(e => e.InventoryId)
+                .HasComment("库存ID");
+            entity.Property(e => e.ProductId)
+                .HasComment("商品ID");
+            entity.Property(e => e.QuantityAvailable)
+                .HasDefaultValue(0)
+                .HasComment("可用库存");
+            entity.Property(e => e.QuantityReserved)
+                .HasDefaultValue(0)
+                .HasComment("预留库存");
+            entity.Property(e => e.UpdateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("更新时间")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Product)
+                .WithOne(p => p.Inventory)
+                .HasForeignKey<ProductInventory>(d => d.ProductId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_ProductInventory_Product");
+
+            entity.HasIndex(e => e.ProductId)
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<ShoppingCartItem>(entity =>
+        {
+            entity.HasKey(e => e.CartItemId).HasName("PK_ShoppingCartItem_CartItemId");
+
+            entity.ToTable("ShoppingCartItem");
+
+            entity.Property(e => e.CartItemId)
+                .HasComment("购物车项目ID");
+            entity.Property(e => e.Uid)
+                .HasComment("用户ID");
+            entity.Property(e => e.ProductId)
+                .HasComment("商品ID");
+            entity.Property(e => e.Quantity)
+                .HasDefaultValue(1)
+                .HasComment("购买数量");
+            entity.Property(e => e.CreateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("创建时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("更新时间")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Product)
+                .WithMany()
+                .HasForeignKey(d => d.ProductId)
+                .HasConstraintName("FK_ShoppingCartItem_Product");
+
+            entity.HasOne(d => d.UidNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.Uid)
+                .HasConstraintName("FK_ShoppingCartItem_User");
+
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => new { e.Uid, e.ProductId })
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.HasKey(e => e.OrderId).HasName("PK_Order_OrderId");
+
+            entity.ToTable("Orders");
+
+            entity.Property(e => e.OrderId)
+                .HasComment("订单ID");
+            entity.Property(e => e.OrderNumber)
+                .HasMaxLength(32)
+                .HasComment("订单编号");
+            entity.Property(e => e.Uid)
+                .HasComment("用户ID");
+            entity.Property(e => e.TotalAmount)
+                .HasComment("订单金额")
+                .HasColumnType("decimal(19,6)");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(16)
+                .HasDefaultValue("USDT")
+                .HasComment("币种");
+            entity.Property(e => e.Status)
+                .HasComment("订单状态");
+            entity.Property(e => e.PaymentMode)
+                .HasDefaultValue(StorePaymentMode.Traditional)
+                .HasComment("支付模式");
+            entity.Property(e => e.PaymentStatus)
+                .HasDefaultValue(StorePaymentStatus.PendingSignature)
+                .HasComment("支付状态");
+            entity.Property(e => e.PaymentMethod)
+                .HasMaxLength(32)
+                .HasComment("支付方式");
+            entity.Property(e => e.PaymentProviderType)
+                .HasMaxLength(64)
+                .HasComment("支付渠道类型");
+            entity.Property(e => e.PaymentProviderName)
+                .HasMaxLength(64)
+                .HasComment("支付渠道名称");
+            entity.Property(e => e.PaymentWalletAddress)
+                .HasMaxLength(128)
+                .HasComment("支付钱包地址");
+            entity.Property(e => e.PaymentWalletLabel)
+                .HasMaxLength(64)
+                .HasComment("钱包标签");
+            entity.Property(e => e.ChainId)
+                .HasComment("链ID");
+            entity.Property(e => e.PaymentTransactionHash)
+                .HasMaxLength(128)
+                .HasComment("链上交易哈希");
+            entity.Property(e => e.PaymentConfirmations)
+                .HasComment("确认数");
+            entity.Property(e => e.PaymentSubmittedTime)
+                .HasComment("提交支付时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.PaymentConfirmedTime)
+                .HasComment("确认完成时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.PaymentSignaturePayload)
+                .HasComment("签名原文");
+            entity.Property(e => e.PaymentSignatureResult)
+                .HasComment("签名结果");
+            entity.Property(e => e.PaymentFailureReason)
+                .HasMaxLength(512)
+                .HasComment("失败原因");
+            entity.Property(e => e.PaymentExpiresAt)
+                .HasComment("支付过期时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.CreateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("创建时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.PaidTime)
+                .HasComment("支付时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.CancelTime)
+                .HasComment("取消时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.CompleteTime)
+                .HasComment("完成时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Remark)
+                .HasMaxLength(512)
+                .HasComment("备注");
+
+            entity.HasOne(d => d.Chain)
+                .WithMany()
+                .HasForeignKey(d => d.ChainId)
+                .HasConstraintName("FK_Orders_ChainNetworkConfig");
+
+            entity.HasOne(d => d.UidNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.Uid)
+                .HasConstraintName("FK_Orders_User");
+
+            entity.HasIndex(e => e.ChainId);
+            entity.HasIndex(e => e.Uid);
+            entity.HasIndex(e => e.OrderNumber)
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.HasKey(e => e.OrderItemId).HasName("PK_OrderItem_OrderItemId");
+
+            entity.ToTable("OrderItems");
+
+            entity.Property(e => e.OrderItemId)
+                .HasComment("订单商品ID");
+            entity.Property(e => e.OrderId)
+                .HasComment("订单ID");
+            entity.Property(e => e.ProductId)
+                .HasComment("商品ID");
+            entity.Property(e => e.ProductName)
+                .HasMaxLength(128)
+                .HasComment("商品名称");
+            entity.Property(e => e.UnitPrice)
+                .HasComment("单价")
+                .HasColumnType("decimal(19,6)");
+            entity.Property(e => e.Quantity)
+                .HasComment("数量");
+            entity.Property(e => e.Subtotal)
+                .HasComment("小计")
+                .HasColumnType("decimal(19,6)");
+
+            entity.HasOne(d => d.Order)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_OrderItems_Orders_OrderId");
+
+            entity.HasOne(d => d.Product)
+                .WithMany()
+                .HasForeignKey(d => d.ProductId)
+                .HasConstraintName("FK_OrderItems_Product_ProductId");
+
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.ProductId);
+        });
+
+        modelBuilder.Entity<OrderPaymentLog>(entity =>
+        {
+            entity.HasKey(e => e.OrderPaymentLogId).HasName("PK_OrderPaymentLog_OrderPaymentLogId");
+
+            entity.ToTable("OrderPaymentLogs");
+
+            entity.Property(e => e.OrderPaymentLogId)
+                .HasComment("支付日志ID");
+            entity.Property(e => e.OrderId)
+                .HasComment("订单ID");
+            entity.Property(e => e.PaymentStatus)
+                .HasComment("支付状态");
+            entity.Property(e => e.EventType)
+                .HasMaxLength(64)
+                .HasDefaultValue("status_change")
+                .HasComment("事件类型");
+            entity.Property(e => e.Message)
+                .HasMaxLength(512)
+                .HasComment("记录描述");
+            entity.Property(e => e.RawData)
+                .HasComment("原始数据");
+            entity.Property(e => e.CreateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("记录时间")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Order)
+                .WithMany(p => p.PaymentLogs)
+                .HasForeignKey(d => d.OrderId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_OrderPaymentLog_Order");
+
+            entity.HasIndex(e => e.OrderId);
+        });
+
+        modelBuilder.Entity<WalletUserProfile>(entity =>
+        {
+            entity.HasKey(e => e.WalletUserProfileId).HasName("PK_WalletUserProfile_WalletUserProfileId");
+
+            entity.ToTable("WalletUserProfiles");
+
+            entity.Property(e => e.WalletUserProfileId)
+                .HasComment("钱包档案ID");
+            entity.Property(e => e.Uid)
+                .HasComment("用户ID");
+            entity.Property(e => e.ProviderType)
+                .HasMaxLength(64)
+                .HasComment("钱包类型");
+            entity.Property(e => e.ProviderName)
+                .HasMaxLength(64)
+                .HasComment("钱包名称");
+            entity.Property(e => e.WalletAddress)
+                .HasMaxLength(128)
+                .HasComment("钱包地址");
+            entity.Property(e => e.AddressLabel)
+                .HasMaxLength(128)
+                .HasComment("地址标签");
+            entity.Property(e => e.PreferredChainId)
+                .HasComment("首选链");
+            entity.Property(e => e.CreateTime)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasComment("创建时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.LastUsedTime)
+                .HasComment("最近使用时间")
+                .HasColumnType("datetime");
+            entity.Property(e => e.IsPrimary)
+                .HasDefaultValue(false)
+                .HasComment("是否主钱包");
+
+            entity.HasOne(d => d.UidNavigation)
+                .WithMany()
+                .HasForeignKey(d => d.Uid)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_WalletUserProfile_User");
+
+            entity.HasIndex(e => e.Uid);
+            entity.HasIndex(e => new { e.Uid, e.ProviderType, e.WalletAddress })
+                .IsUnique();
+        });
+
+        // 商品评价配置
+        modelBuilder.Entity<ProductReview>(entity =>
+        {
+            entity.HasKey(e => e.ReviewId).HasName("PK_ProductReview_ReviewId");
+            entity.ToTable("ProductReviews");
+            entity.Property(e => e.ReviewId).HasComment("评价ID");
+            entity.Property(e => e.ProductId).HasComment("商品ID");
+            entity.Property(e => e.Uid).HasComment("用户ID");
+            entity.Property(e => e.OrderId).HasComment("订单ID");
+            entity.Property(e => e.Rating).HasComment("评分（1-5星）");
+            entity.Property(e => e.Content).HasMaxLength(2000).HasComment("评价内容");
+            entity.Property(e => e.IsApproved).HasDefaultValue(false).HasComment("是否已审核");
+            entity.Property(e => e.IsVisible).HasDefaultValue(true).HasComment("是否显示");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("(getutcdate())").HasComment("创建时间").HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime).HasDefaultValueSql("(getutcdate())").HasComment("更新时间").HasColumnType("datetime");
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductReviews).HasForeignKey(d => d.ProductId).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ProductReview_Product");
+            entity.HasOne(d => d.UidNavigation).WithMany(p => p.ProductReviews).HasForeignKey(d => d.Uid).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ProductReview_User");
+            entity.HasOne(d => d.Order).WithMany(p => p.ProductReviews).HasForeignKey(d => d.OrderId).HasConstraintName("FK_ProductReview_Order");
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.Uid);
+            entity.HasIndex(e => e.OrderId);
+        });
+
+        // 商品评价图片配置
+        modelBuilder.Entity<ProductReviewImage>(entity =>
+        {
+            entity.HasKey(e => e.ImageId).HasName("PK_ProductReviewImage_ImageId");
+            entity.ToTable("ProductReviewImages");
+            entity.Property(e => e.ImageId).HasComment("图片ID");
+            entity.Property(e => e.ReviewId).HasComment("评价ID");
+            entity.Property(e => e.ImageUrl).HasMaxLength(512).HasComment("图片URL");
+            entity.Property(e => e.SortOrder).HasDefaultValue(0).HasComment("排序顺序");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("(getutcdate())").HasComment("创建时间").HasColumnType("datetime");
+            entity.HasOne(d => d.Review).WithMany().HasForeignKey(d => d.ReviewId).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ProductReviewImage_ProductReview");
+            entity.HasIndex(e => e.ReviewId);
+        });
+
+        // 商品评价回复配置
+        modelBuilder.Entity<ProductReviewReply>(entity =>
+        {
+            entity.HasKey(e => e.ReplyId).HasName("PK_ProductReviewReply_ReplyId");
+            entity.ToTable("ProductReviewReplies");
+            entity.Property(e => e.ReplyId).HasComment("回复ID");
+            entity.Property(e => e.ReviewId).HasComment("评价ID");
+            entity.Property(e => e.ManagerUid).HasComment("管理员ID");
+            entity.Property(e => e.Content).HasMaxLength(2000).HasComment("回复内容");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("(getutcdate())").HasComment("创建时间").HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime).HasDefaultValueSql("(getutcdate())").HasComment("更新时间").HasColumnType("datetime");
+            entity.HasOne(d => d.Review).WithMany().HasForeignKey(d => d.ReviewId).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ProductReviewReply_ProductReview");
+            entity.HasOne(d => d.Manager).WithMany().HasForeignKey(d => d.ManagerUid).HasConstraintName("FK_ProductReviewReply_Manager");
+            entity.HasIndex(e => e.ReviewId);
+            entity.HasIndex(e => e.ManagerUid);
+        });
+
+        // 商品评价投票配置
+        modelBuilder.Entity<ProductReviewVote>(entity =>
+        {
+            entity.HasKey(e => e.VoteId).HasName("PK_ProductReviewVote_VoteId");
+            entity.ToTable("ProductReviewVotes");
+            entity.Property(e => e.VoteId).HasComment("投票ID");
+            entity.Property(e => e.ReviewId).HasComment("评价ID");
+            entity.Property(e => e.Uid).HasComment("用户ID");
+            entity.Property(e => e.IsHelpful).HasDefaultValue(true).HasComment("是否有用");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("(getutcdate())").HasComment("创建时间").HasColumnType("datetime");
+            entity.HasOne(d => d.Review).WithMany().HasForeignKey(d => d.ReviewId).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ProductReviewVote_ProductReview");
+            entity.HasOne(d => d.UidNavigation).WithMany().HasForeignKey(d => d.Uid).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ProductReviewVote_User");
+            entity.HasIndex(e => e.ReviewId);
+            entity.HasIndex(e => e.Uid);
+            entity.HasIndex(e => new { e.ReviewId, e.Uid }).IsUnique();
+        });
+
+        // 商品图片配置
+        modelBuilder.Entity<ProductImage>(entity =>
+        {
+            entity.HasKey(e => e.ImageId).HasName("PK_ProductImage_ImageId");
+            entity.ToTable("ProductImages");
+            entity.Property(e => e.ImageId).HasComment("图片ID");
+            entity.Property(e => e.ProductId).HasComment("商品ID");
+            entity.Property(e => e.ImageUrl).HasMaxLength(512).HasComment("图片URL");
+            entity.Property(e => e.ImageType).HasMaxLength(32).HasDefaultValue("gallery").HasComment("图片类型");
+            entity.Property(e => e.SortOrder).HasDefaultValue(0).HasComment("排序顺序");
+            entity.Property(e => e.IsPrimary).HasDefaultValue(false).HasComment("是否为主图");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("(getutcdate())").HasComment("创建时间").HasColumnType("datetime");
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductImages).HasForeignKey(d => d.ProductId).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ProductImage_Product");
+            entity.HasIndex(e => e.ProductId);
+        });
+
+        // 商品规格配置
+        modelBuilder.Entity<ProductSpecification>(entity =>
+        {
+            entity.HasKey(e => e.SpecificationId).HasName("PK_ProductSpecification_SpecificationId");
+            entity.ToTable("ProductSpecifications");
+            entity.Property(e => e.SpecificationId).HasComment("规格ID");
+            entity.Property(e => e.ProductId).HasComment("商品ID");
+            entity.Property(e => e.SpecificationName).HasMaxLength(64).HasComment("规格名称");
+            entity.Property(e => e.SpecificationValue).HasMaxLength(128).HasComment("规格值");
+            entity.Property(e => e.PriceAdjustment).HasDefaultValue(0).HasComment("价格调整").HasColumnType("decimal(19,6)");
+            entity.Property(e => e.StockQuantity).HasComment("库存数量");
+            entity.Property(e => e.SortOrder).HasDefaultValue(0).HasComment("排序顺序");
+            entity.Property(e => e.IsEnabled).HasDefaultValue(true).HasComment("是否启用");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("(getutcdate())").HasComment("创建时间").HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime).HasDefaultValueSql("(getutcdate())").HasComment("更新时间").HasColumnType("datetime");
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductSpecifications).HasForeignKey(d => d.ProductId).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ProductSpecification_Product");
+            entity.HasIndex(e => e.ProductId);
+        });
+
+        // 订单物流配置
+        modelBuilder.Entity<OrderShipping>(entity =>
+        {
+            entity.HasKey(e => e.ShippingId).HasName("PK_OrderShipping_ShippingId");
+            entity.ToTable("OrderShippings");
+            entity.Property(e => e.ShippingId).HasComment("物流ID");
+            entity.Property(e => e.OrderId).HasComment("订单ID");
+            entity.Property(e => e.ShippingCompany).HasMaxLength(128).HasComment("物流公司名称");
+            entity.Property(e => e.ShippingCompanyCode).HasMaxLength(64).HasComment("物流公司代码");
+            entity.Property(e => e.TrackingNumber).HasMaxLength(128).HasComment("物流单号");
+            entity.Property(e => e.RecipientName).HasMaxLength(64).HasComment("收货人姓名");
+            entity.Property(e => e.RecipientPhone).HasMaxLength(32).HasComment("收货人电话");
+            entity.Property(e => e.RecipientAddress).HasMaxLength(512).HasComment("收货地址");
+            entity.Property(e => e.ShippedTime).HasComment("发货时间").HasColumnType("datetime");
+            entity.Property(e => e.EstimatedDeliveryTime).HasComment("预计送达时间").HasColumnType("datetime");
+            entity.Property(e => e.DeliveredTime).HasComment("实际送达时间").HasColumnType("datetime");
+            entity.Property(e => e.Status).HasMaxLength(32).HasDefaultValue("pending").HasComment("物流状态");
+            entity.Property(e => e.StatusDescription).HasMaxLength(512).HasComment("物流状态描述");
+            entity.Property(e => e.ShippingFee).HasComment("物流费用").HasColumnType("decimal(19,6)");
+            entity.Property(e => e.Remark).HasMaxLength(512).HasComment("备注");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("(getutcdate())").HasComment("创建时间").HasColumnType("datetime");
+            entity.Property(e => e.UpdateTime).HasDefaultValueSql("(getutcdate())").HasComment("更新时间").HasColumnType("datetime");
+            entity.HasOne(d => d.Order).WithMany().HasForeignKey(d => d.OrderId).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_OrderShipping_Order");
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.TrackingNumber);
+        });
+
+        // 物流跟踪日志配置
+        modelBuilder.Entity<ShippingTrackingLog>(entity =>
+        {
+            entity.HasKey(e => e.TrackingLogId).HasName("PK_ShippingTrackingLog_TrackingLogId");
+            entity.ToTable("ShippingTrackingLogs");
+            entity.Property(e => e.TrackingLogId).HasComment("日志ID");
+            entity.Property(e => e.ShippingId).HasComment("物流ID");
+            entity.Property(e => e.Status).HasMaxLength(32).HasComment("物流状态");
+            entity.Property(e => e.Description).HasMaxLength(512).HasComment("状态描述");
+            entity.Property(e => e.Location).HasMaxLength(256).HasComment("位置信息");
+            entity.Property(e => e.Timestamp).HasDefaultValueSql("(getutcdate())").HasComment("时间戳").HasColumnType("datetime");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("(getutcdate())").HasComment("创建时间").HasColumnType("datetime");
+            entity.HasOne(d => d.Shipping).WithMany(p => p.TrackingLogs).HasForeignKey(d => d.ShippingId).OnDelete(DeleteBehavior.Cascade).HasConstraintName("FK_ShippingTrackingLog_OrderShipping");
+            entity.HasIndex(e => e.ShippingId);
+            entity.HasIndex(e => e.Timestamp);
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+

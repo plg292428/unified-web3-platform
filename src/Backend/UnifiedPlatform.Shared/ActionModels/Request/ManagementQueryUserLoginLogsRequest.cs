@@ -1,6 +1,6 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端查询用户登录日志请求
@@ -43,3 +43,4 @@ namespace SmallTarget.Shared.ActionModels
         public ManagementQueryUserType? QueryUserType { get; set; }
     }
 }
+

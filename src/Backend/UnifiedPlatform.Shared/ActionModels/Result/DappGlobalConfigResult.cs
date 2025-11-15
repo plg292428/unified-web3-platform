@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 全局配置响应数据
@@ -47,3 +47,4 @@
         public decimal InvitedRewardRateLayer3 { get; set; }
     }
 }
+

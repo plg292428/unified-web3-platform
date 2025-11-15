@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 邀请者类型
@@ -26,3 +26,4 @@ namespace SmallTarget.Shared
         Employee = 2,
     }
 }
+

@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class UserChainTransaction
 {
@@ -66,3 +66,4 @@ public partial class UserChainTransaction
 
     public virtual User UidNavigation { get; set; } = null!;
 }
+

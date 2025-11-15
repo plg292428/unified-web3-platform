@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户链上资产变动记录响应数据
@@ -46,3 +46,4 @@
         public DateTime CreateTime { get; set; }
     }
 }
+

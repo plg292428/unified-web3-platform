@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 请求用户类型
@@ -38,3 +38,4 @@ namespace SmallTarget.Shared
         Developer = 999,
     }
 }
+

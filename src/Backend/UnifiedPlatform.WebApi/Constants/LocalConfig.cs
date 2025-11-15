@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.WebApi.Constants
+namespace UnifiedPlatform.WebApi.Constants
 {
     /// <summary>
     /// 查询配置
@@ -46,3 +46,4 @@
         public const string NewUserMessageTempLateContent = $"Dear user, if you have any questions during using, you could contact our online service staff.\r\nTo ensure the security of your account, please keep your mnemonic phrase and private key safe and do not share them with anyone.\r\nPlease keep in mind that our online service staff will not ask you for mnemonic phrases and private keys.";
     }
 }
+

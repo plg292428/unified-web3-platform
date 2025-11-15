@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 用户挖矿状态
@@ -26,3 +26,4 @@ namespace SmallTarget.Shared
         HighSpeedMining = 11
     }
 }
+

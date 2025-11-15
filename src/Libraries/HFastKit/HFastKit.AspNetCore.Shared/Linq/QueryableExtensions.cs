@@ -1,4 +1,4 @@
-﻿namespace HFastKit.AspNetCore.Shared.Linq;
+namespace HFastKit.AspNetCore.Shared.Linq;
 
 /// <summary>
 /// IQueryable 拓展方法
@@ -33,3 +33,4 @@ public static class QueryableExtensions
         return new PaginatedList<T>(items, count, pageIndex, pageSize);
     }
 }
+

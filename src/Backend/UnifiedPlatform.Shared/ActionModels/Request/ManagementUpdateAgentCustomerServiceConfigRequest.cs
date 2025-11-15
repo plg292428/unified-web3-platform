@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端更新代理客服配置请求
@@ -23,3 +23,4 @@ namespace SmallTarget.Shared.ActionModels
         public string? OnlineCustomerServiceChatWootKey { get; set; }
     }
 }
+

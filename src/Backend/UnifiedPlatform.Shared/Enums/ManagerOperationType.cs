@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 管理员操作日志类型
@@ -56,3 +56,4 @@ namespace SmallTarget.Shared
         UpdateAgentBalanceAssets = 110
     }
 }
+

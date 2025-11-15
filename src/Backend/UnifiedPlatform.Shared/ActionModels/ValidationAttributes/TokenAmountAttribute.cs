@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 代币金额验证特性
@@ -22,3 +22,4 @@ namespace SmallTarget.Shared.ActionModels
         }
     }
 }
+

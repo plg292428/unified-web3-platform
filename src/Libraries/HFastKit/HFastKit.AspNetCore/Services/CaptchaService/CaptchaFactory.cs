@@ -1,4 +1,4 @@
-﻿using HFastKit.Text;
+using HFastKit.Text;
 using System.Collections.Concurrent;
 
 namespace HFastKit.AspNetCore.Services.Captcha
@@ -116,3 +116,4 @@ namespace HFastKit.AspNetCore.Services.Captcha
         }
     }
 }
+

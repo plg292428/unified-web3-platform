@@ -1,9 +1,9 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 using Microsoft.AspNetCore.Mvc;
-using SmallTarget.Shared;
-using SmallTarget.WebApi.Businesses;
+using UnifiedPlatform.Shared;
+using UnifiedPlatform.WebApi.Businesses;
 
-namespace SmallTarget.WebApi.Controllers
+namespace UnifiedPlatform.WebApi.Controllers
 {
     [ApiController]
     public class ApiControllerBase : ControllerBase
@@ -59,3 +59,4 @@ namespace SmallTarget.WebApi.Controllers
         }
     }
 }
+

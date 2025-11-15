@@ -1,4 +1,4 @@
-﻿using System.Net.WebSockets;
+using System.Net.WebSockets;
 using System.Runtime.Versioning;
 using System.Text;
 
@@ -240,3 +240,4 @@ public class EasyWebSocketClient : IDisposable
         GC.SuppressFinalize(this);
     }
 }
+

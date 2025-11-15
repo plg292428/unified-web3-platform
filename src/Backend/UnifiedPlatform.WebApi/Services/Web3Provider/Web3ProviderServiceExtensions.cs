@@ -1,6 +1,6 @@
-﻿using SmallTarget.DbService.Entities;
+using UnifiedPlatform.DbService.Entities;
 
-namespace SmallTarget.WebApi.Services;
+namespace UnifiedPlatform.WebApi.Services;
 
 /// <summary>
 /// Web3 提供方服务扩展方法
@@ -20,3 +20,4 @@ public static class Web3ProviderServiceExtensions
         services.AddSingleton<IWeb3ProviderService, Web3ProviderService>();
     }
 }
+

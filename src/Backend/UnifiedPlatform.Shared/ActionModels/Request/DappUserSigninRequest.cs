@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户登入请求
@@ -19,3 +19,4 @@ namespace SmallTarget.Shared.ActionModels
         public string? SignedText { get; set; }
     }
 }
+

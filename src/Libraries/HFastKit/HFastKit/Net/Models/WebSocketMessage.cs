@@ -1,4 +1,4 @@
-﻿using System.Net.WebSockets;
+using System.Net.WebSockets;
 using System.Runtime.Versioning;
 
 namespace HFastKit.Net;
@@ -64,3 +64,4 @@ public class WebSocketMessage : IWebSocketMessage
         Text = data;
     }
 }
+

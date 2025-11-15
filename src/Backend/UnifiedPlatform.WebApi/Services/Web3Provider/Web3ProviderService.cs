@@ -1,6 +1,6 @@
-﻿using SmallTarget.Shared;
+using UnifiedPlatform.Shared;
 
-namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// Web3 提供方服务
@@ -96,3 +96,4 @@ namespace SmallTarget.WebApi.Services
         }
     }
 }
+

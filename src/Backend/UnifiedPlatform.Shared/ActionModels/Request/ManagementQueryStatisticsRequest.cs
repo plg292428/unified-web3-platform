@@ -1,7 +1,7 @@
-﻿using HFastKit.AspNetCore.Shared;
+using HFastKit.AspNetCore.Shared;
 using System.ComponentModel.DataAnnotations;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 管理端查询统计请求
@@ -20,3 +20,4 @@ namespace SmallTarget.Shared.ActionModels
         public bool IncludeSubManagers { get; set; }
     }
 }
+

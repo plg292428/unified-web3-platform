@@ -73,14 +73,24 @@ export const useServerConfigsStore = defineStore('serverConfigs', () => {
   }
 
   // 获取区块链网络配置
-  const getChainNetworkConfigs = async (): Promise<boolean> => {
+  // 返回结果包含成功状态和错误信息
+  const getChainNetworkConfigs = async (): Promise<{ success: boolean; isNetworkError?: boolean; errorMessage?: string }> => {
     const webApi = WebApi.getInstance()
     const result = await webApi.get('/DappCommon/GetChainNetworkConfigs')
     if (!result.succeed) {
-      return false
+      // 检查是否是网络错误（后端服务未运行）
+      const isNetworkError = result.statusCode === 0 && 
+        (result.errorMessage?.includes('无法连接到服务器') || 
+         result.errorMessage?.includes('ERR_CONNECTION_REFUSED') ||
+         result.errorMessage?.includes('ERR_NETWORK'))
+      return {
+        success: false,
+        isNetworkError: isNetworkError,
+        errorMessage: result.errorMessage
+      }
     }
     state.chainNetworkConfigs = result.data
-    return true
+    return { success: true }
   }
 
   // 获取当前网络代币配置

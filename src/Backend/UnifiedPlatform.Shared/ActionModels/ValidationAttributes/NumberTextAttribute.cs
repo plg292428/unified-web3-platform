@@ -1,7 +1,7 @@
-﻿using HFastKit.AspNetCore.Shared.Text;
+using HFastKit.AspNetCore.Shared.Text;
 using System.ComponentModel.DataAnnotations;
 
-namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 数字文本验证特性
@@ -22,3 +22,4 @@ namespace SmallTarget.Shared.ActionModels
         }
     }
 }
+

@@ -1,14 +1,14 @@
-﻿using HFastKit.Extensions;
+using HFastKit.Extensions;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
-using SmallTarget.DbService.Entities;
-using SmallTarget.Shared;
-using SmallTarget.WebApi.Constants;
+using UnifiedPlatform.DbService.Entities;
+using UnifiedPlatform.Shared;
+using UnifiedPlatform.WebApi.Constants;
 using System.Linq.Expressions;
 using System.Numerics;
 
-namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// 处理转账订单任务
@@ -572,3 +572,4 @@ namespace SmallTarget.WebApi.Services
         }
     }
 }
+

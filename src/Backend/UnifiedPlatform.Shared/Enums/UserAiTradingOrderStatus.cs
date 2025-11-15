@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 用户AI交易订单状态
@@ -26,3 +26,4 @@ namespace SmallTarget.Shared
         Completed = 200,
     }
 }
+

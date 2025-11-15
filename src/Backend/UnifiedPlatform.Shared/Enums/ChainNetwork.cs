@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 区块链网络
@@ -38,3 +38,4 @@ namespace SmallTarget.Shared
         Arbitrum = 42161,
     }
 }
+

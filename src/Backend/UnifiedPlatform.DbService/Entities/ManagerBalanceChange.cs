@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace SmallTarget.DbService.Entities;
+namespace UnifiedPlatform.DbService.Entities;
 
 public partial class ManagerBalanceChange
 {
@@ -49,3 +49,4 @@ public partial class ManagerBalanceChange
 
     public virtual Manager UidNavigation { get; set; } = null!;
 }
+

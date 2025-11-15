@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 下级员工响应结果附加数据
@@ -12,3 +12,4 @@
         public required string Username { get; set; }
     }
 }
+

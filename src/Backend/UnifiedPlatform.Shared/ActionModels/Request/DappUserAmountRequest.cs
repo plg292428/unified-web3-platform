@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// Dapp 用户金额请求
@@ -11,3 +11,4 @@
         public decimal Amount { get; set; }
     }
 }
+

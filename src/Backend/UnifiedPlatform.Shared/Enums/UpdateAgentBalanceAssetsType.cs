@@ -1,6 +1,6 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace SmallTarget.Shared
+namespace UnifiedPlatform.Shared
 {
     /// <summary>
     /// 更新代理余额资产类型
@@ -20,3 +20,4 @@ namespace SmallTarget.Shared
         Deduction = 200,
     }
 }
+

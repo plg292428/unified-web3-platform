@@ -1,4 +1,4 @@
-﻿namespace SmallTarget.Shared.ActionModels
+namespace UnifiedPlatform.Shared.ActionModels
 {
     /// <summary>
     /// 区块链代币配置响应数据
@@ -16,3 +16,4 @@
         public string? CustomerServiceChatWootKey { get; set; }
     }
 }
+

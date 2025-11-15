@@ -1,6 +1,6 @@
-﻿using SmallTarget.Shared;
+using UnifiedPlatform.Shared;
 
-namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// Web3 提供方索引
@@ -18,3 +18,4 @@ namespace SmallTarget.WebApi.Services
         public ChainNetwork ChainNetwork { get; set; }
     }
 }
+

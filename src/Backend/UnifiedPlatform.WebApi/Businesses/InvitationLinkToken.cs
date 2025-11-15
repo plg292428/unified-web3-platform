@@ -1,8 +1,8 @@
-﻿using SmallTarget.Shared;
+using UnifiedPlatform.Shared;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace SmallTarget.WebApi
+namespace UnifiedPlatform.WebApi
 {
     /// <summary>
     /// 推荐链接令牌
@@ -117,3 +117,4 @@ namespace SmallTarget.WebApi
         }
     }
 }
+

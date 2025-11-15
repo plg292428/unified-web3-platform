@@ -1,4 +1,4 @@
-﻿namespace HFastKit.AspNetCore.Services.Captcha
+namespace HFastKit.AspNetCore.Services.Captcha
 {
     /// <summary>
     /// 验证码验证结果
@@ -16,3 +16,4 @@
         public string ErrorMessage { get; set; } = string.Empty;
     }
 }
+

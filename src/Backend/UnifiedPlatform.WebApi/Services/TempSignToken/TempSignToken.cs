@@ -1,10 +1,10 @@
-﻿using Nethereum.Signer;
-using SmallTarget.Shared;
+using Nethereum.Signer;
+using UnifiedPlatform.Shared;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace SmallTarget.WebApi.Services
+namespace UnifiedPlatform.WebApi.Services
 {
     /// <summary>
     /// 临时签名令牌接口
@@ -138,3 +138,4 @@ namespace SmallTarget.WebApi.Services
         }
     }
 }
+
