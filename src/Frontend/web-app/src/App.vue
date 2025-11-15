@@ -58,11 +58,12 @@ onBeforeMount(async () => {
   // 如果访问 NoWalletDetected 页面，立即跳转到首页并进入访客模式
   if (route.name === 'ErrorNoWalletDetected') {
     console.log('检测到 ErrorNoWalletDetected 路由，立即跳转到首页')
-    // 立即跳转到首页，然后进入访客模式
-    await router.push({ name: 'Home' }).catch(() => {
-      // 如果路由跳转失败，使用 window.location 强制跳转
-      window.location.href = window.location.origin
-    })
+    // 立即使用 window.location 强制跳转，确保不显示错误页面
+    if (window.location.pathname !== '/' && !window.location.pathname.includes('/go')) {
+      window.location.replace(window.location.origin)
+      return
+    }
+    // 如果已经在首页，直接进入访客模式
     await guestReady()
     return
   }
