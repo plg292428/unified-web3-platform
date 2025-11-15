@@ -51,20 +51,16 @@ onBeforeMount(async () => {
   }
 
   // 处于错误页面时先返回首页（但如果是 Error500 或 NoWalletDetected，稍后会在 guestReady 中处理）
-  if (route.meta?.errorPage && route.name !== 'Error404' && route.name !== 'Error500' && route.name !== 'ErrorNoWalletDetected') {
+  // 注意：ErrorNoWalletDetected 路由已经被移除，这里不再需要检查
+  if (route.meta?.errorPage && route.name !== 'Error404' && route.name !== 'Error500') {
     router.push({ name: 'Go' })
   }
   
-  // 如果访问 NoWalletDetected 页面，立即跳转到首页并进入访客模式
-  if (route.name === 'ErrorNoWalletDetected') {
-    console.log('检测到 ErrorNoWalletDetected 路由，立即跳转到首页')
+  // 如果访问 NoWalletDetected 页面，立即使用 window.location 强制跳转到首页
+  if (route.path === '/error/no-wallet-detected' || route.path.includes('no-wallet-detected') || window.location.pathname.includes('no-wallet-detected')) {
+    console.log('检测到 no-wallet-detected 路径，立即强制跳转到首页')
     // 立即使用 window.location 强制跳转，确保不显示错误页面
-    if (window.location.pathname !== '/' && !window.location.pathname.includes('/go')) {
-      window.location.replace(window.location.origin)
-      return
-    }
-    // 如果已经在首页，直接进入访客模式
-    await guestReady()
+    window.location.replace(window.location.origin)
     return
   }
 
@@ -232,14 +228,18 @@ async function guestReady() {
     await router.isReady()
     console.log('路由就绪，当前路由:', route.name)
     // 如果当前在错误页面或登录页面，跳转到首页
-    if (route.meta?.errorPage || route.name === 'Go' || route.name === 'ErrorNoWalletDetected') {
+    if (route.meta?.errorPage || route.name === 'Go' || route.path.includes('no-wallet-detected') || window.location.pathname.includes('no-wallet-detected')) {
       console.log('跳转到首页...')
+      // 直接使用 window.location 强制跳转，确保不显示错误页面
+      if (window.location.pathname !== '/' && !window.location.pathname.includes('/go')) {
+        window.location.replace(window.location.origin)
+        return
+      }
       try {
         await router.push({ name: 'Home' })
       } catch (error) {
         console.error('路由跳转失败，使用 window.location 强制跳转:', error)
-        // 如果路由跳转失败，使用 window.location 强制跳转
-        window.location.href = '/'
+        window.location.replace(window.location.origin)
       }
     }
     
