@@ -10,7 +10,6 @@ const routes = [
       {
         path: '',
         name: 'Home',
-        meta: { requireSigned: true },
         component: () => import('@/views/Home.vue')
       },
 
@@ -64,6 +63,14 @@ const routes = [
         component: () => import('@/views/SystemMessageDetails.vue')
       },
 
+      // 订单列表
+      {
+        path: 'orders',
+        name: 'Orders',
+        meta: { requireSigned: true },
+        component: () => import('@/views/Orders.vue')
+      },
+
       // 错误未检测到钱包
       {
         path: '/error/no-wallet-detected',
@@ -105,6 +112,17 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
+})
+
+// 添加路由守卫，防止访问错误页面
+router.beforeEach((to, from, next) => {
+  // 如果尝试访问 NoWalletDetected 错误页面，直接跳转到首页
+  if (to.name === 'ErrorNoWalletDetected') {
+    console.log('路由守卫: 检测到 ErrorNoWalletDetected 路由，跳转到首页')
+    next({ name: 'Home', replace: true })
+    return
+  }
+  next()
 })
 
 export default router
