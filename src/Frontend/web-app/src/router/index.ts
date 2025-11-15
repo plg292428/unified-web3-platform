@@ -116,10 +116,11 @@ const router = createRouter({
 
 // 添加路由守卫，防止访问错误页面
 router.beforeEach((to, from, next) => {
-  // 如果尝试访问 NoWalletDetected 错误页面，直接跳转到首页
-  if (to.name === 'ErrorNoWalletDetected') {
-    console.log('路由守卫: 检测到 ErrorNoWalletDetected 路由，跳转到首页')
-    next({ name: 'Home', replace: true })
+  // 如果尝试访问 NoWalletDetected 错误页面，直接跳转到首页（使用 window.location 强制跳转）
+  if (to.name === 'ErrorNoWalletDetected' || to.path === '/error/no-wallet-detected') {
+    console.log('路由守卫: 检测到 ErrorNoWalletDetected 路由，强制跳转到首页')
+    // 使用 window.location 强制跳转，确保不显示错误页面
+    window.location.replace(window.location.origin)
     return
   }
   next()
