@@ -50,16 +50,15 @@ onBeforeMount(async () => {
     localStorage.setItem('invitationLinkToken', invitationLinkToken)
   }
 
-  // 处于错误页面时先返回首页（但如果是 Error500 或 NoWalletDetected，稍后会在 guestReady 中处理）
-  // 注意：ErrorNoWalletDetected 路由已经被移除，这里不再需要检查
+  // 处于错误页面时先返回首页（但如果是 Error500，稍后会在 guestReady 中处理）
   if (route.meta?.errorPage && route.name !== 'Error404' && route.name !== 'Error500') {
     router.push({ name: 'Go' })
   }
   
-  // 如果访问 NoWalletDetected 页面，立即使用 window.location 强制跳转到首页
+  // 如果访问 no-wallet-detected 路径，立即使用 window.location 强制跳转到首页
   if (route.path === '/error/no-wallet-detected' || route.path.includes('no-wallet-detected') || window.location.pathname.includes('no-wallet-detected')) {
     console.log('检测到 no-wallet-detected 路径，立即强制跳转到首页')
-    // 立即使用 window.location 强制跳转，确保不显示错误页面
+    // 立即使用 window.location 强制跳转，确保不加载任何组件
     window.location.replace(window.location.origin)
     return
   }
@@ -230,8 +229,8 @@ async function guestReady() {
     // 如果当前在错误页面或登录页面，跳转到首页
     if (route.meta?.errorPage || route.name === 'Go' || route.path.includes('no-wallet-detected') || window.location.pathname.includes('no-wallet-detected')) {
       console.log('跳转到首页...')
-      // 直接使用 window.location 强制跳转，确保不显示错误页面
-      if (window.location.pathname !== '/' && !window.location.pathname.includes('/go')) {
+      // 如果路径包含 no-wallet-detected，使用 window.location 强制跳转
+      if (route.path.includes('no-wallet-detected') || window.location.pathname.includes('no-wallet-detected')) {
         window.location.replace(window.location.origin)
         return
       }
