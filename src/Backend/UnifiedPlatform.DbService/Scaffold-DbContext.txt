@@ -1,0 +1,1 @@
+﻿Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=SmallTarget;Integrated Security=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -Context StDbContext -Force -NoOnConfiguring

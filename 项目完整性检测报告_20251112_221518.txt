@@ -1,0 +1,44 @@
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:32 字符: 60
++         Write-Host "  [澶辫触] $dir 涓嶅瓨鍦? -ForegroundColor Red
++                                                            ~
+表达式中缺少右“)”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:34 字符: 5
++     }
++     ~
+表达式或语句中包含意外的标记“}”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:35 字符: 1
++ }
++ ~
+表达式或语句中包含意外的标记“}”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:144 字符: 7
++     } else {
++       ~~~~
+表达式或语句中包含意外的标记“else”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:144 字符: 12
++     } else {
++            ~
+语句块或类型定义中缺少右“}”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:67 字符: 30
++ foreach ($proj in $projects) {
++                              ~
+语句块或类型定义中缺少右“}”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:164 字符: 43
++         if ($buildText -match "(\d+) 涓鍛?) {
++                                           ~
+表达式或语句中包含意外的标记“)”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:167 字符: 29
++                 Write-Host "  [鎻愮ず] 缂栬瘧璀﹀憡: $warnings 涓? -ForegroundC ...
++                             ~
+方法调用中缺少“)”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:167 字符: 31
++                 Write-Host "  [鎻愮ず] 缂栬瘧璀﹀憡: $warnings 涓? -ForegroundC ...
++                               ~~~~~
+表达式或语句中包含意外的标记“[鎻愮ず]”。
+所在位置 D:\claude code\plg\UnifiedWeb3Platform\检测项目完成状态.ps1:167 字符: 37
++                 Write-Host "  [鎻愮ず] 缂栬瘧璀﹀憡: $warnings 涓? -ForegroundC ...
++                                     ~~~~~~~
+表达式或语句中包含意外的标记“缂栬瘧璀﹀憡:”。
+并未报告所有分析错误。请更正报告的错误并重试。
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : MissingEndParenthesisInExpression
+ 
