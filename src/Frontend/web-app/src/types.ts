@@ -459,14 +459,28 @@ export interface StoreOrderPreparePaymentRequest {
   chainId?: number | null
 }
 
+export interface PaymentTokenInfo {
+  tokenId?: number | null
+  tokenName?: string | null
+  tokenSymbol?: string | null
+  iconPath?: string | null
+  decimals?: number | null
+  contractAddress?: string | null
+}
+
 export interface StoreOrderPreparePaymentResult {
   paymentSignaturePayload: string
   amount: number
   currency: string
   chainId: number
+  chainName?: string | null
+  tokenId?: number | null
+  tokenContractAddress?: string | null
+  tokenSymbol?: string | null
   paymentAddress: string
   paymentExpiresAt: number
   orderNumber: string
+  supportedTokens?: PaymentTokenInfo[]
 }
 
 export interface StoreOrderPaymentStatusResult {

@@ -63,12 +63,34 @@ const routes = [
         component: () => import('@/views/SystemMessageDetails.vue')
       },
 
+      // 购物车（允许未登录用户访问，页面内处理登录）
+      {
+        path: 'cart',
+        name: 'Cart',
+        component: () => import('@/views/Cart.vue')
+      },
+
       // 订单列表
       {
         path: 'orders',
         name: 'Orders',
         meta: { requireSigned: true },
         component: () => import('@/views/Orders.vue')
+      },
+
+      // 订单详情
+      {
+        path: 'orders/:orderId',
+        name: 'OrderDetail',
+        meta: { requireSigned: true },
+        component: () => import('@/views/OrderDetail.vue')
+      },
+
+      // 产品详情
+      {
+        path: 'products/:productId',
+        name: 'ProductDetail',
+        component: () => import('@/views/ProductDetail.vue')
       },
 
       // 错误未检测到钱包

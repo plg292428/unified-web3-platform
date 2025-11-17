@@ -168,6 +168,8 @@ import type {
   StoreOrderWeb3ConfirmPayload
 } from '@/types'
 import { StorePaymentStatus as PaymentStatusEnum } from '@/types'
+// 动态导入 ethers，避免在非 Web3 支付时加载
+// import { BrowserProvider, Contract, parseEther, parseUnits } from 'ethers'
 
 const props = defineProps<{
   modelValue: boolean
@@ -260,17 +262,72 @@ async function handleSignPayment() {
   errorMessage.value = null
 
   try {
-    // 使用钱包签名
-    const signature = await walletStore.state.provider.request({
-      method: 'personal_sign',
-      params: [paymentPrepareResult.value.paymentSignaturePayload, walletStore.state.address]
-    })
+    // 解析支付签名原文（JSON格式）
+    const payload = JSON.parse(paymentPrepareResult.value.paymentSignaturePayload)
+    const paymentAddress = payload.paymentAddress
+    const amount = payload.amount
+    const tokenContractAddress = payload.tokenContractAddress
+    const chainId = payload.chainId
 
-    // 确认 Web3 支付，提交签名
+    // 检查链ID是否匹配
+    if (walletStore.state.chainId !== chainId) {
+      errorMessage.value = `Please switch to the correct network (Chain ID: ${chainId})`
+      FastDialog.errorSnackbar(errorMessage.value)
+      return
+    }
+
+    let transactionHash: string | null = null
+
+    // 如果有代币合约地址，使用代币转账；否则使用原生币转账
+    if (tokenContractAddress) {
+      // ERC20 代币转账
+      const { BrowserProvider, Contract, parseUnits } = await import('ethers')
+      const provider = new BrowserProvider(walletStore.state.provider)
+      const signer = await provider.getSigner()
+      
+      // 获取代币信息（从支付结果中获取）
+      const tokenSymbol = paymentPrepareResult.value.tokenSymbol || 'TOKEN'
+      // 从支持的代币列表中查找对应的decimals
+      const supportedToken = paymentPrepareResult.value.supportedTokens?.find(
+        t => t.tokenContractAddress?.toLowerCase() === tokenContractAddress.toLowerCase()
+      )
+      const decimals = supportedToken?.decimals ?? 18 // 默认18位
+      
+      // ERC20 Transfer ABI
+      const erc20Abi = [
+        'function transfer(address to, uint256 amount) returns (bool)'
+      ]
+      
+      const tokenContract = new Contract(tokenContractAddress, erc20Abi, signer)
+      const amountWei = parseUnits(amount.toString(), decimals)
+      
+      // 发送代币转账交易
+      const tx = await tokenContract.transfer(paymentAddress, amountWei)
+      transactionHash = tx.hash
+      
+      FastDialog.successSnackbar(`Transaction sent: ${transactionHash.substring(0, 10)}...`)
+    } else {
+      // 原生币转账（ETH/MATIC等）
+      const { BrowserProvider, parseEther } = await import('ethers')
+      const provider = new BrowserProvider(walletStore.state.provider)
+      const signer = await provider.getSigner()
+      
+      // 发送原生币转账
+      const tx = await signer.sendTransaction({
+        to: paymentAddress,
+        value: parseEther(amount.toString())
+      })
+      transactionHash = tx.hash
+      
+      FastDialog.successSnackbar(`Transaction sent: ${transactionHash.substring(0, 10)}...`)
+    }
+
+    // 确认 Web3 支付，提交交易哈希和签名
     const confirmPayload: StoreOrderWeb3ConfirmPayload = {
       uid: userStore.state.userInfo!.uid,
+      paymentTransactionHash: transactionHash,
       paymentStatus: StorePaymentStatus.AwaitingOnChainConfirmation,
-      paymentSignatureResult: signature
+      paymentSignatureResult: null // 签名主要用于验证，实际支付通过交易哈希确认
     }
     
     await confirmWeb3Payment(props.order.orderId, confirmPayload)
@@ -278,10 +335,15 @@ async function handleSignPayment() {
     currentStep.value = 3
     startPaymentStatusPolling()
   } catch (error: any) {
+    console.error('Payment transaction error:', error)
     if (error.code === 4001) {
-      errorMessage.value = 'User cancelled signature'
+      errorMessage.value = 'User cancelled transaction'
+    } else if (error.code === 'INSUFFICIENT_FUNDS' || error.message?.includes('insufficient funds')) {
+      errorMessage.value = 'Insufficient balance for payment'
+    } else if (error.code === 'NETWORK_ERROR' || error.message?.includes('network')) {
+      errorMessage.value = 'Network error, please check your connection'
     } else {
-      errorMessage.value = (error as Error).message ?? 'Signature failed'
+      errorMessage.value = (error as Error).message ?? 'Transaction failed'
     }
     FastDialog.errorSnackbar(errorMessage.value)
   } finally {

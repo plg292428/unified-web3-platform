@@ -62,7 +62,7 @@ export const useWalletStore = defineStore('wallet', () => {
         if (typeof window !== 'undefined' && (window as any).ethereum) {
           const metamaskProvider = await detectEthereumProvider({ timeout: 3000 })
           if (metamaskProvider) {
-            detectedProvider = metamaskProvider as Eip1193Provider
+            detectedProvider = metamaskProvider as unknown as Eip1193Provider
             if ((metamaskProvider as any)?.isMetaMask) {
               detectedType = 'metamask'
               detectedName = 'MetaMask'
@@ -128,8 +128,29 @@ export const useWalletStore = defineStore('wallet', () => {
         status.latency = Math.round(latency)
         status.lastChecked = Date.now()
       } catch (error) {
+        // 静默处理认证错误（401/403），这些是预期的（API 密钥可能无效）
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        const isAuthError = (error as any)?.isAuthError === true ||
+                           (error as any)?.status === 401 ||
+                           (error as any)?.status === 403 ||
+                           errorMessage.includes('authentication') || 
+                           errorMessage.includes('401') || 
+                           errorMessage.includes('403')
+        
         status.status = 'fail'
-        status.errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        status.errorMessage = isAuthError ? 'API key invalid or expired' : errorMessage
+        
+        // 对于认证错误，静默处理（不输出到控制台，避免噪音）
+        // 只在开发环境输出警告日志
+        if (isAuthError) {
+          if (import.meta.env.DEV) {
+            console.warn(`[RPC] ${item.name} RPC authentication failed (API key may be invalid). URL: ${url.substring(0, 50)}...`)
+          }
+          // 生产环境完全静默，不输出任何日志
+        } else {
+          // 非认证错误才输出到控制台
+          console.error(`[RPC] ${item.name} RPC check failed:`, errorMessage)
+        }
       }
       statuses.push(status)
     }

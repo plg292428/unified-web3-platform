@@ -192,131 +192,23 @@
         </template>
       </div>
 
-      <!-- 订单详情对话框 -->
-      <v-dialog v-model="showOrderDetail" max-width="800" scrollable>
-        <v-card v-if="orderDetail">
-          <v-card-title class="d-flex align-center">
-            Order Details
-            <v-spacer></v-spacer>
-            <v-btn icon="mdi-close" variant="text" @click="showOrderDetail = false"></v-btn>
-          </v-card-title>
-          <v-divider></v-divider>
-          <v-card-text>
-            <!-- 订单基本信息 -->
-            <v-row dense class="mt-2">
-              <v-col cols="6">
-                <div class="text-caption text-grey-lighten-1">Order Number</div>
-                <div class="text-body-2">{{ orderDetail.orderNumber }}</div>
-              </v-col>
-              <v-col cols="6">
-                <div class="text-caption text-grey-lighten-1">Order Status</div>
-                <v-chip
-                  size="small"
-                  :color="getOrderStatusColor(orderDetail.status)"
-                  variant="tonal"
-                >
-                  {{ getOrderStatusText(orderDetail.status) }}
-                </v-chip>
-              </v-col>
-              <v-col cols="6">
-                <div class="text-caption text-grey-lighten-1">Created At</div>
-                <div class="text-body-2">{{ formatDateTime(orderDetail.createTime) }}</div>
-              </v-col>
-              <v-col cols="6">
-                <div class="text-caption text-grey-lighten-1">Payment Method</div>
-                <div class="text-body-2">
-                  {{ orderDetail.paymentMode === StorePaymentMode.Web3 ? 'Web3 Payment' : 'Traditional Payment' }}
-                </div>
-              </v-col>
-            </v-row>
-
-            <!-- 支付信息 -->
-            <v-divider class="my-4"></v-divider>
-            <div class="text-subtitle-2 mb-2">Payment Information</div>
-            <v-row dense>
-              <v-col cols="6">
-                <div class="text-caption text-grey-lighten-1">Payment Status</div>
-                <v-chip
-                  size="small"
-                  :color="getPaymentStatusColor(orderDetail.paymentStatus)"
-                  variant="tonal"
-                >
-                  {{ getPaymentStatusText(orderDetail.paymentStatus) }}
-                </v-chip>
-              </v-col>
-              <v-col cols="6">
-                <div class="text-caption text-grey-lighten-1">Order Amount</div>
-                <div class="text-body-2 font-weight-medium">
-                  {{ formatAmount(orderDetail.totalAmount) }} {{ orderDetail.currency }}
-                </div>
-              </v-col>
-              <v-col v-if="orderDetail.paymentTransactionHash" cols="12">
-                <div class="text-caption text-grey-lighten-1">Transaction Hash</div>
-                <div class="text-body-2 font-family-monospace">{{ orderDetail.paymentTransactionHash }}</div>
-              </v-col>
-              <v-col v-if="orderDetail.paymentConfirmations" cols="6">
-                <div class="text-caption text-grey-lighten-1">Confirmations</div>
-                <div class="text-body-2">{{ orderDetail.paymentConfirmations }}</div>
-              </v-col>
-              <v-col v-if="orderDetail.paymentConfirmedTime" cols="6">
-                <div class="text-caption text-grey-lighten-1">Confirmed At</div>
-                <div class="text-body-2">{{ formatDateTime(orderDetail.paymentConfirmedTime) }}</div>
-              </v-col>
-            </v-row>
-
-            <!-- 订单商品 -->
-            <v-divider class="my-4"></v-divider>
-            <div class="text-subtitle-2 mb-2">Order Items</div>
-            <v-table density="compact">
-              <thead>
-                <tr>
-                  <th>Product Name</th>
-                  <th>Unit Price</th>
-                  <th>Quantity</th>
-                  <th class="text-right">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="item in orderDetail.orderItems" :key="item.orderItemId">
-                  <td>{{ item.productName }}</td>
-                  <td>{{ formatAmount(item.unitPrice) }} {{ orderDetail.currency }}</td>
-                  <td>{{ item.quantity }}</td>
-                  <td class="text-right">{{ formatAmount(item.subtotal) }} {{ orderDetail.currency }}</td>
-                </tr>
-              </tbody>
-            </v-table>
-          </v-card-text>
-          <v-divider></v-divider>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn
-              v-if="orderDetail.status === StoreOrderStatus.PendingPayment && orderDetail.paymentMode === StorePaymentMode.Web3"
-              color="error"
-              variant="outlined"
-              @click="handleCancelOrder(orderDetail)"
-            >
-              Cancel Order
-            </v-btn>
-            <v-btn color="primary" @click="showOrderDetail = false">Close</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
     </v-responsive>
   </v-container>
 </template>
 
 <script lang="ts" setup>
 import { computed, onBeforeMount, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import FastDialog from '@/libs/FastDialog'
 import Filter from '@/libs/Filter'
 import { useUserStore } from '@/store/user'
 import { useCartStore } from '@/store/cart'
-import { fetchOrderList, fetchOrderDetail, cancelOrder } from '@/services/storeApi'
-import type { StoreOrderSummaryResult, StoreOrderDetailResult } from '@/types'
+import { fetchOrderList, cancelOrder } from '@/services/storeApi'
+import type { StoreOrderSummaryResult } from '@/types'
 import { StoreOrderStatus, StorePaymentStatus, StorePaymentMode } from '@/types'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const cartStore = useCartStore()
 
@@ -334,9 +226,6 @@ const filterStatus = ref<StoreOrderStatus | null>(null)
 const filterPaymentMode = ref<StorePaymentMode | null>(null)
 const searchOrderNumber = ref<string>('')
 
-// 订单详情
-const showOrderDetail = ref(false)
-const orderDetail = ref<StoreOrderDetailResult | null>(null)
 
 // 状态选项
 const statusOptions = [
@@ -399,32 +288,25 @@ async function refreshOrders() {
   await loadOrders()
 }
 
-async function viewOrderDetail(orderId: number) {
+function viewOrderDetail(orderId: number) {
+  router.push({ name: 'OrderDetail', params: { orderId: orderId.toString() } })
+}
+
+async function handleCancelOrder(order: StoreOrderSummaryResult) {
   if (!userUid.value) {
     return
   }
 
-  try {
-    orderDetail.value = await fetchOrderDetail(userUid.value, orderId)
-    showOrderDetail.value = true
-  } catch (error) {
-    console.warn(error)
-    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to load order details')
-  }
-}
-
-async function handleCancelOrder(order: StoreOrderSummaryResult | StoreOrderDetailResult) {
-  if (!userUid.value) {
+  const confirmed = window.confirm('Are you sure you want to cancel this order? This action cannot be undone.')
+  
+  if (!confirmed) {
     return
   }
 
   try {
     await cancelOrder(userUid.value, order.orderId, { reason: 'User cancelled' })
-    FastDialog.infoSnackbar('Order cancelled')
+    FastDialog.successSnackbar('Order cancelled')
     await loadOrders()
-    if (showOrderDetail.value) {
-      showOrderDetail.value = false
-    }
   } catch (error) {
     console.warn(error)
     FastDialog.errorSnackbar((error as Error).message ?? 'Failed to cancel order')

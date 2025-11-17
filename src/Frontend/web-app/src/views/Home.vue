@@ -141,10 +141,33 @@
           </template>
           <template v-else-if="productList.length">
             <v-col cols="12" md="4" v-for="product in productList" :key="product.productId">
-              <v-card class="primary-border" variant="outlined" height="100%">
-                <v-img :src="resolveProductImage(product)"
-                  height="160" cover />
-                <v-card-title class="text-subtitle-1">{{ product.name }}</v-card-title>
+              <v-card 
+                class="primary-border product-card" 
+                variant="outlined" 
+                height="100%"
+                style="cursor: pointer; transition: all 0.2s;"
+                @click="viewProductDetail(product.productId)"
+                @mouseenter="(e) => e.currentTarget.style.transform = 'translateY(-4px)'"
+                @mouseleave="(e) => e.currentTarget.style.transform = 'translateY(0)'"
+              >
+                <v-img
+                  :src="resolveProductImage(product)"
+                  height="160"
+                  cover
+                  class="product-image"
+                >
+                  <template v-slot:placeholder>
+                    <div class="d-flex align-center justify-center fill-height bg-grey-darken-3">
+                      <v-progress-circular color="primary" indeterminate></v-progress-circular>
+                    </div>
+                  </template>
+                </v-img>
+                <v-card-title 
+                  class="text-subtitle-1"
+                  @click.stop="viewProductDetail(product.productId)"
+                >
+                  {{ product.name }}
+                </v-card-title>
                 <v-card-subtitle class="text-caption text-grey-lighten-1">
                   {{ product.subtitle ?? product.categoryName }}
                 </v-card-subtitle>
@@ -153,7 +176,7 @@
                 </v-card-text>
                 <v-divider></v-divider>
                 <v-card-actions class="justify-space-between">
-                  <div>
+                  <div @click.stop>
                     <div class="text-subtitle-1 text-primary font-weight-medium">
                       {{ Filter.formatToken(product.price) }} {{ product.currency }}
                     </div>
@@ -163,7 +186,7 @@
                     color="primary"
                     append-icon="mdi-cart-plus"
                     :loading="cartProcessing"
-                    @click="handleAddToCart(product)"
+                    @click.stop="handleAddToCart(product)"
                   >
                     Add to Cart
                   </v-btn>
@@ -498,99 +521,6 @@
       </template>
       <!--邀请朋友-->
 
-      <v-dialog v-model="cartDialog" max-width="640">
-        <v-card>
-          <v-card-title class="d-flex align-center">
-            购物车
-            <v-spacer></v-spacer>
-            <v-btn icon="mdi-close" variant="text" @click="cartDialog = false"></v-btn>
-          </v-card-title>
-          <v-divider></v-divider>
-          <v-card-text>
-            <v-alert v-if="cartItems.length === 0" type="info" variant="tonal">
-              Your cart is empty. Start shopping to add items.
-            </v-alert>
-            <v-list v-else density="comfortable">
-              <v-list-item v-for="item in cartItems" :key="item.cartItemId" :value="item.cartItemId">
-                <template #title>
-                  <div class="d-flex align-center">
-                    <span class="font-weight-medium">{{ item.productName }}</span>
-                    <v-spacer></v-spacer>
-                    <span class="text-caption text-grey-lighten-1">Stock {{ item.inventoryAvailable }}</span>
-                  </div>
-                </template>
-                <template #subtitle>
-                  <div class="d-flex align-center">
-                    <span class="text-caption text-grey-lighten-1">
-                      Unit Price {{ Filter.formatToken(item.unitPrice) }} {{ item.currency }}
-                    </span>
-                    <v-spacer></v-spacer>
-                    <span class="text-caption text-grey-lighten-1">
-                      Subtotal {{ Filter.formatToken(item.subtotal) }} {{ item.currency }}
-                    </span>
-                  </div>
-                </template>
-                <template #append>
-                  <div class="d-flex align-center">
-                    <v-btn
-                      icon="mdi-minus"
-                      variant="text"
-                      size="small"
-                      :disabled="cartProcessing"
-                      @click="handleUpdateQuantity(item, item.quantity - 1)"
-                    ></v-btn>
-                    <v-text-field
-                      class="mx-2"
-                      style="max-width: 80px"
-                      type="number"
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      :model-value="item.quantity"
-                      :disabled="cartProcessing"
-                      @update:model-value="(value: number) => handleQuantityInput(item, value)"
-                    />
-                    <v-btn
-                      icon="mdi-plus"
-                      variant="text"
-                      size="small"
-                      :disabled="cartProcessing || item.quantity >= item.inventoryAvailable"
-                      @click="handleUpdateQuantity(item, item.quantity + 1)"
-                    ></v-btn>
-                    <v-btn
-                      icon="mdi-delete"
-                      color="error"
-                      variant="text"
-                      size="small"
-                      class="ml-2"
-                      :disabled="cartProcessing"
-                      @click="handleRemoveItem(item)"
-                    ></v-btn>
-                  </div>
-                </template>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-          <v-divider></v-divider>
-          <v-card-actions>
-            <div class="text-body-2 text-grey-lighten-1">
-              Total {{ cartTotalQuantity }} items, Amount
-              <span class="text-subtitle-1 text-primary font-weight-medium">
-                {{ Filter.formatToken(cartTotalAmount) }} {{ cartCurrency }}
-              </span>
-            </div>
-            <v-spacer></v-spacer>
-            <v-btn
-              color="primary"
-              :loading="placingOrder || cartProcessing"
-              :disabled="cartTotalQuantity === 0"
-              @click="handlePlaceOrder"
-            >
-              Place Order
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
 
       <v-dialog v-model="orderSuccessDialog" max-width="520">
         <v-card>
@@ -639,30 +569,6 @@
 
       <ActivateAIContractTradingDialog v-model="activateAIContractTradingDialog" />
 
-      <!-- 购物车 -->
-      <v-dialog v-model="cartDialog" max-width="600px">
-        <v-card>
-          <v-card-title>Shopping Cart</v-card-title>
-          <v-card-text>
-            <v-list>
-              <v-list-item v-for="item in cartItems" :key="item.cartItemId">
-                <v-list-item-title>{{ item.productName }}</v-list-item-title>
-                <v-list-item-subtitle>Quantity: {{ item.quantity }}</v-list-item-subtitle>
-                <v-list-item-subtitle>Unit Price: {{ item.unitPrice }} {{ item.currency }}</v-list-item-subtitle>
-                <template v-slot:append>
-                  <v-btn icon="mdi-minus" @click="handleUpdateQuantity(item, item.quantity - 1)"></v-btn>
-                  <v-btn icon="mdi-plus" @click="handleUpdateQuantity(item, item.quantity + 1)"></v-btn>
-                  <v-btn icon="mdi-delete" @click="handleRemoveItem(item)"></v-btn>
-                </template>
-              </v-list-item>
-            </v-list>
-            <v-card-actions class="justify-end">
-              <v-btn color="primary" @click="handlePlaceOrder">Checkout</v-btn>
-            </v-card-actions>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
-      <!-- 购物车 -->
 
       <!-- 订单支付对话框 -->
       <OrderPaymentDialog
@@ -931,13 +837,10 @@ const orderList = ref<StoreOrderSummaryResult[]>([])
 const orderPage = ref(1)
 const orderPageSize = ref(5)
 
-// 购物车
-const cartDialog = ref(false)
 const orderSuccessDialog = ref(false)
 const orderSuccessDetail = ref<StoreOrderDetailResult | null>(null)
 const orderPaymentDialog = ref(false)
 const orderPaymentDetail = ref<StoreOrderDetailResult | null>(null)
-const placingOrder = ref(false)
 
 const isSigned = computed(() => userStore.state.signed)
 
@@ -1260,7 +1163,22 @@ function handlePagination(page: number) {
 async function handleAddToCart(product: StoreProductSummaryResult) {
   const uid = userUid.value
   if (!uid) {
-    FastDialog.warningSnackbar('Please login first before adding to cart.')
+    // 未登录，引导用户登录
+    const loginSuccess = await handleLoginForAddToCart()
+    if (!loginSuccess) {
+      return
+    }
+    // 登录成功后，重新获取 uid 并添加到购物车
+    const newUid = userUid.value
+    if (newUid) {
+      try {
+        await cartStore.addItem(newUid, product.productId, 1)
+        FastDialog.successSnackbar('Added to cart')
+      } catch (error) {
+        console.warn(error)
+        FastDialog.errorSnackbar((error as Error).message ?? 'Failed to add to cart')
+      }
+    }
     return
   }
   try {
@@ -1272,94 +1190,81 @@ async function handleAddToCart(product: StoreProductSummaryResult) {
   }
 }
 
-async function handleUpdateQuantity(item: StoreCartItemResult, nextQuantity: number) {
-  const uid = userUid.value
-  if (!uid) {
-    return
+// 为添加到购物车功能引导登录
+async function handleLoginForAddToCart(): Promise<boolean> {
+  // 检查是否有钱包提供方
+  if (!walletStore.state.provider) {
+    FastDialog.warningSnackbar('Please connect your wallet first. If you don\'t have a wallet, please install MetaMask or Bitget Wallet.')
+    return false
   }
-  if (nextQuantity <= 0) {
-    await handleRemoveItem(item)
-    return
-  }
-  try {
-    await cartStore.updateItem(uid, item.cartItemId, nextQuantity)
-  } catch (error) {
-    console.warn(error)
-    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to update quantity')
-  }
-}
 
-function handleQuantityInput(item: StoreCartItemResult, value: string | number) {
-  const quantity = Math.floor(Number(value))
-  if (!Number.isFinite(quantity)) {
-    return
-  }
-  handleUpdateQuantity(item, quantity)
-}
-
-async function handleRemoveItem(item: StoreCartItemResult) {
-  const uid = userUid.value
-  if (!uid) {
-    return
-  }
-  try {
-    await cartStore.removeItem(uid, item.cartItemId)
-    FastDialog.successSnackbar('Item removed')
-  } catch (error) {
-    console.warn(error)
-    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to remove item')
-  }
-}
-
-async function handlePlaceOrder() {
-  const uid = userUid.value
-  if (!uid) {
-    FastDialog.warningSnackbar('Please login first.')
-    return
-  }
-  if (cartItems.value.length === 0) {
-    FastDialog.warningSnackbar('Your cart is empty.')
-    return
-  }
-  placingOrder.value = true
-  try {
-    const walletState = walletStore.state
-    const isWeb3Payment = walletState.active && walletState.provider !== null
-    
-    const order = await cartStore.placeOrder({
-      uid,
-      paymentMode: isWeb3Payment ? StorePaymentMode.Web3 : StorePaymentMode.Traditional,
-      paymentMethod: walletState.providerName ?? walletState.providerType ?? undefined,
-      paymentProviderType: walletState.providerType ?? undefined,
-      paymentProviderName: walletState.providerName ?? undefined,
-      paymentWalletAddress: walletState.address ?? undefined,
-      paymentWalletLabel: walletState.address ? formatWalletAddress(walletState.address) : undefined,
-      chainId: walletState.chainId > 0 ? walletState.chainId : undefined,
-      remark: 'Web checkout'
-    })
-    
-    cartDialog.value = false
-    
-    // 如果是 Web3 支付且需要签名，打开支付对话框
-    if (isWeb3Payment && order.paymentStatus === StorePaymentStatus.PendingSignature) {
-      orderPaymentDetail.value = order
-      orderPaymentDialog.value = true
-    } else {
-      // 传统支付或已完成的支付，显示成功对话框
-      orderSuccessDetail.value = order
-      orderSuccessDialog.value = true
-      FastDialog.successSnackbar('Order created')
+  // 检查钱包是否已连接账户
+  if (!walletStore.state.active || !walletStore.state.address) {
+    try {
+      FastDialog.infoSnackbar('Connecting wallet...')
+      const accounts = await walletStore.connect()
+      if (!accounts || accounts.length === 0) {
+        FastDialog.errorSnackbar('Failed to connect wallet. Please try again.')
+        return false
+      }
+    } catch (error) {
+      console.error('Wallet connection error:', error)
+      FastDialog.errorSnackbar('Failed to connect wallet. Please check your wallet and try again.')
+      return false
     }
+  }
+
+  // 检查是否已登录
+  const checkSignedResult = await userStore.checkSigned()
+  if (!checkSignedResult.succeed) {
+    FastDialog.errorSnackbar(checkSignedResult.errorMessage as string)
+    return false
+  }
+
+  // 如果已登录，直接返回成功
+  if (checkSignedResult.data?.singined) {
+    return true
+  }
+
+  // 需要签名登录
+  try {
+    FastDialog.infoSnackbar('Please sign the message in your wallet to login...')
+    const from = walletStore.state.address
+    const provider = walletStore.state.provider
+    const message = `0x${checkSignedResult.data.tokenText}`
     
-    await loadOrders(uid)
-    await loadProducts()
+    const signedText = await provider.request({
+      method: 'personal_sign',
+      params: [message, from]
+    })
+
+    // 执行登录
+    const signResult = await userStore.signIn(signedText)
+    if (!signResult.succeed) {
+      FastDialog.errorSnackbar(signResult.errorMessage as string)
+      return false
+    }
+
+    // 获取用户信息
+    if (!(await userStore.updateUserInfo())) {
+      userStore.signOut()
+      FastDialog.errorSnackbar('Failed to get user information. Please try again.')
+      return false
+    }
+
+    FastDialog.successSnackbar('Login successful!')
+    return true
   } catch (error) {
-    console.warn(error)
-    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to create order')
-  } finally {
-    placingOrder.value = false
+    console.error('Login error:', error)
+    if ((error as any)?.code === 4001) {
+      FastDialog.warningSnackbar('Login cancelled. Please sign the message to add items to cart.')
+    } else {
+      FastDialog.errorSnackbar('Login failed. Please try again.')
+    }
+    return false
   }
 }
+
 
 function handlePaymentSuccess(order: StoreOrderDetailResult) {
   orderPaymentDialog.value = false
@@ -1374,15 +1279,87 @@ function handlePaymentSuccess(order: StoreOrderDetailResult) {
 async function handleOpenCart() {
   const uid = userUid.value
   if (!uid) {
-    FastDialog.warningSnackbar('Please login first.')
+    // 未登录，引导用户登录
+    await handleLoginForCart()
     return
   }
+  // 已登录，跳转到购物车页面
+  router.push({ name: 'Cart' })
+}
+
+// 为购物车功能引导登录
+async function handleLoginForCart() {
+  // 检查是否有钱包提供方
+  if (!walletStore.state.provider) {
+    FastDialog.warningSnackbar('Please connect your wallet first. If you don\'t have a wallet, please install MetaMask or Bitget Wallet.')
+    return
+  }
+
+  // 检查钱包是否已连接账户
+  if (!walletStore.state.active || !walletStore.state.address) {
+    try {
+      FastDialog.infoSnackbar('Connecting wallet...')
+      const accounts = await walletStore.connect()
+      if (!accounts || accounts.length === 0) {
+        FastDialog.errorSnackbar('Failed to connect wallet. Please try again.')
+        return
+      }
+    } catch (error) {
+      console.error('Wallet connection error:', error)
+      FastDialog.errorSnackbar('Failed to connect wallet. Please check your wallet and try again.')
+      return
+    }
+  }
+
+  // 检查是否已登录
+  const checkSignedResult = await userStore.checkSigned()
+  if (!checkSignedResult.succeed) {
+    FastDialog.errorSnackbar(checkSignedResult.errorMessage as string)
+    return
+  }
+
+  // 如果已登录，直接跳转到购物车页面
+  if (checkSignedResult.data?.singined) {
+    router.push({ name: 'Cart' })
+    return
+  }
+
+  // 需要签名登录
   try {
-    await cartStore.refresh(uid)
-    cartDialog.value = true
+    FastDialog.infoSnackbar('Please sign the message in your wallet to login...')
+    const from = walletStore.state.address
+    const provider = walletStore.state.provider
+    const message = `0x${checkSignedResult.data.tokenText}`
+    
+    const signedText = await provider.request({
+      method: 'personal_sign',
+      params: [message, from]
+    })
+
+    // 执行登录
+    const signResult = await userStore.signIn(signedText)
+    if (!signResult.succeed) {
+      FastDialog.errorSnackbar(signResult.errorMessage as string)
+      return
+    }
+
+    // 获取用户信息
+    if (!(await userStore.updateUserInfo())) {
+      userStore.signOut()
+      FastDialog.errorSnackbar('Failed to get user information. Please try again.')
+      return
+    }
+
+    // 登录成功，跳转到购物车页面
+    FastDialog.successSnackbar('Login successful!')
+    router.push({ name: 'Cart' })
   } catch (error) {
-    console.warn(error)
-    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to load cart')
+    console.error('Login error:', error)
+    if ((error as any)?.code === 4001) {
+      FastDialog.warningSnackbar('Login cancelled. Please sign the message to access your cart.')
+    } else {
+      FastDialog.errorSnackbar('Login failed. Please try again.')
+    }
   }
 }
 
@@ -1531,5 +1508,9 @@ function openBitgetPay(chain: BitgetDeepLinkChain, defaultAmount?: number) {
   const deeplink = `https://bkcode.vip/bitkeep?${params.toString()}`
   window.open(deeplink, '_blank', 'noopener')
   FastDialog.successSnackbar('Opening Bitget Wallet. Please complete payment in wallet.')
+}
+
+function viewProductDetail(productId: number) {
+  router.push({ name: 'ProductDetail', params: { productId } })
 }
 </script>

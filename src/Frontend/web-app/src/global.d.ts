@@ -11,6 +11,7 @@ declare global {
     chatwootSettings: any
     $chatwoot: any
     ethereum: any
+    checkRpcConfig?: () => any
   }
 
   interface HTMLElement{
