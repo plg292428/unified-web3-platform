@@ -85,7 +85,24 @@ async function getStarted() {
   }
 
   if (checkSignedResult.data?.singined) {
-    router.push({ name: 'Home' })
+    // 检查是否有待处理的产品购买操作
+    const pendingProductId = localStorage.getItem('pendingProductId')
+    const pendingAction = localStorage.getItem('pendingAction')
+    
+    if (pendingProductId && pendingAction === 'buyNow') {
+      // 清除待处理操作标记
+      localStorage.removeItem('pendingProductId')
+      localStorage.removeItem('pendingAction')
+      
+      // 跳转到产品详情页，并触发购买操作
+      router.push({ 
+        name: 'ProductDetail', 
+        params: { productId: pendingProductId },
+        query: { autoBuy: 'true' }
+      })
+    } else {
+      router.push({ name: 'Home' })
+    }
     return
   }
 
@@ -126,6 +143,24 @@ async function signIn(signedText: string) {
   }
 
   buttonLoading.value = false
-  router.push({ name: 'Home' })
+  
+  // 检查是否有待处理的产品购买操作
+  const pendingProductId = localStorage.getItem('pendingProductId')
+  const pendingAction = localStorage.getItem('pendingAction')
+  
+  if (pendingProductId && pendingAction === 'buyNow') {
+    // 清除待处理操作标记
+    localStorage.removeItem('pendingProductId')
+    localStorage.removeItem('pendingAction')
+    
+    // 跳转到产品详情页，并触发购买操作
+    router.push({ 
+      name: 'ProductDetail', 
+      params: { productId: pendingProductId },
+      query: { autoBuy: 'true' }
+    })
+  } else {
+    router.push({ name: 'Home' })
+  }
 }
 </script>

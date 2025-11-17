@@ -349,7 +349,14 @@ async function handleAddToCart() {
 async function handleLoginForAddToCart(): Promise<boolean> {
   // 检查是否有钱包提供方
   if (!walletStore.state.provider) {
-    FastDialog.warningSnackbar('Please connect your wallet first. If you don\'t have a wallet, please install MetaMask or Bitget Wallet.')
+    FastDialog.warningSnackbar('Please connect your wallet first. Redirecting to wallet setup page...')
+    // 保存当前产品ID到localStorage，以便登录后返回
+    if (product.value) {
+      localStorage.setItem('pendingProductId', product.value.productId.toString())
+      localStorage.setItem('pendingAction', 'buyNow')
+    }
+    // 跳转到钱包注册/连接页面
+    router.push({ name: 'Go' })
     return false
   }
 
@@ -560,6 +567,15 @@ function getPaymentStatusText(status: StorePaymentStatus): string {
 
 onBeforeMount(async () => {
   await loadProduct()
+  
+  // 检查是否有自动购买参数（从钱包注册页返回时）
+  const autoBuy = route.query.autoBuy === 'true'
+  if (autoBuy && product.value && userUid.value) {
+    // 延迟一下，确保页面已完全加载
+    setTimeout(() => {
+      handleBuyNow()
+    }, 500)
+  }
 })
 </script>
 
