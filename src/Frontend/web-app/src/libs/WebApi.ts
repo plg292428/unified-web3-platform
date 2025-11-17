@@ -78,8 +78,14 @@ export default class WebApi {
       })
       
       // 优先使用环境变量配置
-      const envApiUrl = import.meta.env.VITE_API_BASE_URL
+      let envApiUrl = import.meta.env.VITE_API_BASE_URL
       if (envApiUrl) {
+        // 自动修正：如果环境变量是前端域名，则修正为 API 域名
+        if (envApiUrl.includes('www.a292428dsj.dpdns.org') && !envApiUrl.includes('api.')) {
+          console.error('[WebApi] ⚠️ 检测到环境变量是前端域名，自动修正为 API 域名')
+          envApiUrl = envApiUrl.replace('www.a292428dsj.dpdns.org', 'api.a292428dsj.dpdns.org')
+          console.error('[WebApi] 修正后的 API 地址:', envApiUrl)
+        }
         this.axiosInstance.defaults.baseURL = envApiUrl
         this.baseUrl = envApiUrl
         this.ready = true
