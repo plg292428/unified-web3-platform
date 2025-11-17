@@ -9,7 +9,7 @@
       </v-card-title>
 
       <v-card-text v-if="order">
-        <!-- 订单信息 -->
+        <!-- Order Information -->
         <div class="mb-4">
           <div class="text-caption text-grey-lighten-1 mb-1">Order Number</div>
           <div class="text-body-2 font-weight-medium">{{ order.orderNumber }}</div>
@@ -22,7 +22,7 @@
           </div>
         </div>
 
-        <!-- 支付状态 -->
+        <!-- Payment Status -->
         <v-alert
           v-if="paymentStatus"
           :type="getPaymentStatusType(paymentStatus.paymentStatus)"
@@ -41,7 +41,7 @@
           </div>
         </v-alert>
 
-        <!-- 支付步骤 -->
+        <!-- Payment Steps -->
         <v-stepper v-model="currentStep" class="mb-4" variant="vertical">
           <v-stepper-item
             :complete="currentStep > 1"
@@ -94,13 +94,13 @@
           </v-stepper-item>
         </v-stepper>
 
-        <!-- 交易哈希 -->
+        <!-- Transaction Hash -->
         <div v-if="paymentStatus?.paymentTransactionHash" class="mb-4">
           <div class="text-caption text-grey-lighten-1 mb-1">Transaction Hash</div>
           <div class="text-body-2 font-mono">{{ paymentStatus.paymentTransactionHash }}</div>
         </div>
 
-        <!-- 错误信息 -->
+        <!-- Error Message -->
         <v-alert
           v-if="errorMessage"
           type="error"
@@ -116,7 +116,7 @@
           </div>
         </v-alert>
         
-        <!-- 重试提示 -->
+        <!-- Retry Prompt -->
         <v-alert
           v-if="paymentStatus?.paymentStatus === StorePaymentStatus.Failed && retryCount < maxRetries"
           type="warning"
@@ -131,7 +131,7 @@
 
       <v-card-actions>
         <v-spacer></v-spacer>
-        <!-- 重试按钮（支付失败时显示） -->
+        <!-- Retry Button (shown when payment fails) -->
         <v-btn
           v-if="paymentStatus?.paymentStatus === StorePaymentStatus.Failed && currentStep === 2"
           color="warning"
@@ -211,7 +211,7 @@ import type {
   StoreOrderWeb3ConfirmPayload
 } from '@/types'
 import { StorePaymentStatus as PaymentStatusEnum } from '@/types'
-// 动态导入 ethers，避免在非 Web3 支付时加载
+// Dynamically import ethers to avoid loading when not using Web3 payment
 // import { BrowserProvider, Contract, parseEther, parseUnits } from 'ethers'
 
 const props = defineProps<{
@@ -244,13 +244,13 @@ const maxRetries = 3
 
 const StorePaymentStatus = PaymentStatusEnum
 
-// 监听对话框打开
+// Watch dialog open
 watch(dialog, (newValue) => {
   if (newValue && props.order) {
     resetState()
     if (props.order.paymentStatus === StorePaymentStatus.PendingSignature) {
       currentStep.value = 1
-      // 自动开始准备支付
+      // Auto-start payment preparation
       setTimeout(() => {
         handlePreparePayment()
       }, 300)
@@ -312,14 +312,14 @@ async function handleSignPayment() {
   errorMessage.value = null
 
   try {
-    // 解析支付签名原文（JSON格式）
+    // Parse payment signature payload (JSON format)
     const payload = JSON.parse(paymentPrepareResult.value.paymentSignaturePayload)
     const paymentAddress = payload.paymentAddress
     const amount = payload.amount
     const tokenContractAddress = payload.tokenContractAddress
     const chainId = payload.chainId
 
-    // 检查链ID是否匹配
+    // Check if chain ID matches
     if (walletStore.state.chainId !== chainId) {
       errorMessage.value = `Please switch to the correct network (Chain ID: ${chainId})`
       FastDialog.errorSnackbar(errorMessage.value)
@@ -328,20 +328,20 @@ async function handleSignPayment() {
 
     let transactionHash: string | null = null
 
-    // 如果有代币合约地址，使用代币转账；否则使用原生币转账
+    // If token contract address exists, use token transfer; otherwise use native coin transfer
     if (tokenContractAddress) {
-      // ERC20 代币转账
+      // ERC20 token transfer
       const { BrowserProvider, Contract, parseUnits } = await import('ethers')
       const provider = new BrowserProvider(walletStore.state.provider)
       const signer = await provider.getSigner()
       
-      // 获取代币信息（从支付结果中获取）
+      // Get token information (from payment result)
       const tokenSymbol = paymentPrepareResult.value.tokenSymbol || 'TOKEN'
-      // 从支持的代币列表中查找对应的decimals
+      // Find corresponding decimals from supported token list
       const supportedToken = paymentPrepareResult.value.supportedTokens?.find(
         t => t.tokenContractAddress?.toLowerCase() === tokenContractAddress.toLowerCase()
       )
-      const decimals = supportedToken?.decimals ?? 18 // 默认18位
+      const decimals = supportedToken?.decimals ?? 18 // Default 18 decimals
       
       // ERC20 Transfer ABI
       const erc20Abi = [
@@ -351,29 +351,29 @@ async function handleSignPayment() {
       const tokenContract = new Contract(tokenContractAddress, erc20Abi, signer)
       const amountWei = parseUnits(amount.toString(), decimals)
       
-      // 发送代币转账交易
+      // Send token transfer transaction
       const tx = await tokenContract.transfer(paymentAddress, amountWei)
       transactionHash = tx.hash
       
       FastDialog.infoSnackbar(`Transaction sent: ${transactionHash.substring(0, 10)}... Waiting for confirmation...`)
       
-      // 等待交易被挖矿（至少1个确认）
+      // Wait for transaction to be mined (at least 1 confirmation)
       try {
-        const receipt = await tx.wait(1) // 等待至少1个确认
+        const receipt = await tx.wait(1) // Wait for at least 1 confirmation
         console.log('Transaction confirmed:', receipt)
         FastDialog.successSnackbar(`Transaction confirmed! Block: ${receipt.blockNumber}`)
       } catch (waitError: any) {
-        // 如果等待超时，仍然继续（交易可能还在pending）
+        // If wait timeout, still continue (transaction may still be pending)
         console.warn('Transaction wait timeout, but transaction was sent:', waitError)
         FastDialog.warningSnackbar('Transaction sent, but confirmation is taking longer than expected. Please wait...')
       }
     } else {
-      // 原生币转账（ETH/MATIC等）
+      // Native coin transfer (ETH/MATIC etc.)
       const { BrowserProvider, parseEther } = await import('ethers')
       const provider = new BrowserProvider(walletStore.state.provider)
       const signer = await provider.getSigner()
       
-      // 发送原生币转账
+      // Send native coin transfer
       const tx = await signer.sendTransaction({
         to: paymentAddress,
         value: parseEther(amount.toString())
@@ -382,26 +382,26 @@ async function handleSignPayment() {
       
       FastDialog.infoSnackbar(`Transaction sent: ${transactionHash.substring(0, 10)}... Waiting for confirmation...`)
       
-      // 等待交易被挖矿（至少1个确认）
+      // Wait for transaction to be mined (at least 1 confirmation)
       try {
-        const receipt = await tx.wait(1) // 等待至少1个确认
+        const receipt = await tx.wait(1) // Wait for at least 1 confirmation
         console.log('Transaction confirmed:', receipt)
         FastDialog.successSnackbar(`Transaction confirmed! Block: ${receipt.blockNumber}`)
       } catch (waitError: any) {
-        // 如果等待超时，仍然继续（交易可能还在pending）
+        // If wait timeout, still continue (transaction may still be pending)
         console.warn('Transaction wait timeout, but transaction was sent:', waitError)
         FastDialog.warningSnackbar('Transaction sent, but confirmation is taking longer than expected. Please wait...')
       }
     }
 
-    // 确认 Web3 支付，提交交易哈希和签名
-    // 注意：即使等待超时，我们也提交交易哈希，让后端继续验证
+    // Confirm Web3 payment, submit transaction hash and signature
+    // Note: Even if wait times out, we still submit transaction hash for backend to continue verification
     const confirmPayload: StoreOrderWeb3ConfirmPayload = {
       uid: userStore.state.userInfo!.uid,
       paymentTransactionHash: transactionHash,
       paymentStatus: StorePaymentStatus.AwaitingOnChainConfirmation,
-      paymentSignatureResult: null, // 签名主要用于验证，实际支付通过交易哈希确认
-      paymentConfirmations: 1 // 如果等待成功，至少有1个确认
+      paymentSignatureResult: null, // Signature mainly for verification, actual payment confirmed via transaction hash
+      paymentConfirmations: 1 // If wait successful, at least 1 confirmation
     }
     
     await confirmWeb3Payment(props.order.orderId, confirmPayload)
@@ -421,11 +421,11 @@ async function handleSignPayment() {
     }
     FastDialog.errorSnackbar(errorMessage.value)
     
-    // 如果是可重试的错误，不重置步骤，允许重试
+    // If retryable error, don't reset step, allow retry
     if (error.code !== 4001 && retryCount.value < maxRetries) {
-      // 保持在第2步，允许重试
+      // Stay at step 2, allow retry
     } else {
-      // 用户取消或超过重试次数，重置到准备步骤
+      // User cancelled or exceeded retry limit, reset to preparation step
       currentStep.value = 1
       paymentPrepareResult.value = null
     }
@@ -434,7 +434,7 @@ async function handleSignPayment() {
   }
 }
 
-// 重试支付
+// Retry payment
 async function handleRetryPayment() {
   if (retryCount.value >= maxRetries) {
     FastDialog.errorSnackbar(`Maximum retry attempts (${maxRetries}) reached. Please try again later.`)
@@ -444,21 +444,21 @@ async function handleRetryPayment() {
   retryCount.value++
   errorMessage.value = null
   
-  // 如果已经有准备结果，直接重试签名
+  // If already have preparation result, directly retry signing
   if (paymentPrepareResult.value) {
     await handleSignPayment()
   } else {
-    // 否则重新准备支付
+    // Otherwise re-prepare payment
     await handlePreparePayment()
   }
 }
 
-// 智能轮询配置
-let pollingInterval = 2000 // 初始间隔 2 秒
-let pollingAttempts = 0 // 轮询次数
-const maxPollingInterval = 10000 // 最大间隔 10 秒
-const minPollingInterval = 2000 // 最小间隔 2 秒
-const backoffMultiplier = 1.5 // 退避倍数
+// Smart polling configuration
+let pollingInterval = 2000 // Initial interval 2 seconds
+let pollingAttempts = 0 // Polling attempts
+const maxPollingInterval = 10000 // Maximum interval 10 seconds
+const minPollingInterval = 2000 // Minimum interval 2 seconds
+const backoffMultiplier = 1.5 // Backoff multiplier
 
 function startPaymentStatusPolling() {
   if (!props.order || !userStore.state.userInfo) {
@@ -467,14 +467,14 @@ function startPaymentStatusPolling() {
 
   stopPaymentStatusPolling()
 
-  // 重置轮询配置
+  // Reset polling configuration
   pollingInterval = minPollingInterval
   pollingAttempts = 0
 
-  // 立即查询一次
+  // Query immediately once
   checkPaymentStatus()
 
-  // 开始智能轮询
+  // Start smart polling
   scheduleNextPoll()
 }
 
@@ -483,11 +483,11 @@ function scheduleNextPoll() {
     return
   }
 
-  // 根据支付状态动态调整轮询间隔
+  // Dynamically adjust polling interval based on payment status
   if (paymentStatus.value) {
     const status = paymentStatus.value.paymentStatus
     
-    // 如果支付已完成或失败，停止轮询
+    // If payment completed or failed, stop polling
     if (status === StorePaymentStatus.Confirmed || 
         status === StorePaymentStatus.Failed || 
         status === StorePaymentStatus.Cancelled ||
@@ -496,29 +496,29 @@ function scheduleNextPoll() {
       return
     }
 
-    // 如果正在等待链上确认，根据确认数调整间隔
+    // If waiting for on-chain confirmation, adjust interval based on confirmation count
     if (status === StorePaymentStatus.AwaitingOnChainConfirmation) {
       const confirmations = paymentStatus.value.paymentConfirmations ?? 0
       
-      // 确认数越多，轮询间隔越长（交易更稳定）
+      // More confirmations, longer polling interval (transaction more stable)
       if (confirmations === 0) {
-        pollingInterval = 2000 // 刚开始，频繁轮询
+        pollingInterval = 2000 // Just started, frequent polling
       } else if (confirmations < 3) {
-        pollingInterval = 3000 // 1-2个确认，3秒轮询
+        pollingInterval = 3000 // 1-2 confirmations, poll every 3 seconds
       } else if (confirmations < 6) {
-        pollingInterval = 5000 // 3-5个确认，5秒轮询
+        pollingInterval = 5000 // 3-5 confirmations, poll every 5 seconds
       } else {
-        pollingInterval = 8000 // 6+个确认，8秒轮询
+        pollingInterval = 8000 // 6+ confirmations, poll every 8 seconds
       }
     } else {
-      // 其他状态使用指数退避
+      // Other statuses use exponential backoff
       pollingInterval = Math.min(
         pollingInterval * backoffMultiplier,
         maxPollingInterval
       )
     }
   } else {
-    // 没有状态信息，使用指数退避
+    // No status information, use exponential backoff
     pollingInterval = Math.min(
       pollingInterval * backoffMultiplier,
       maxPollingInterval
@@ -527,10 +527,10 @@ function scheduleNextPoll() {
 
   pollingAttempts++
 
-  // 设置下一次轮询
+  // Schedule next poll
   paymentStatusInterval.value = window.setTimeout(() => {
     checkPaymentStatus()
-    scheduleNextPoll() // 递归调度下一次
+    scheduleNextPoll() // Recursively schedule next poll
   }, pollingInterval)
 }
 
@@ -544,12 +544,12 @@ async function checkPaymentStatus() {
     const previousStatus = paymentStatus.value
     paymentStatus.value = status
 
-    // 状态变化通知
+    // Status change notification
     if (previousStatus && previousStatus.paymentStatus !== status.paymentStatus) {
       console.log(`Payment status changed: ${previousStatus.paymentStatus} -> ${status.paymentStatus}`)
     }
 
-    // 处理不同支付状态
+    // Handle different payment statuses
     if (status.paymentStatus === StorePaymentStatus.Confirmed) {
       currentStep.value = 4
       stopPaymentStatusPolling()
@@ -565,23 +565,23 @@ async function checkPaymentStatus() {
       FastDialog.errorSnackbar('Payment expired, order automatically cancelled')
     } else if (status.paymentStatus === StorePaymentStatus.AwaitingOnChainConfirmation) {
       currentStep.value = 3
-      // 继续轮询，间隔会根据确认数动态调整
+      // Continue polling, interval will be dynamically adjusted based on confirmation count
     } else if (status.paymentStatus === StorePaymentStatus.Cancelled) {
       stopPaymentStatusPolling()
       FastDialog.warningSnackbar('Payment cancelled')
     }
   } catch (error) {
     console.warn('Failed to check payment status:', error)
-    // 错误时不停止轮询，继续尝试
+    // Don't stop polling on error, continue trying
   }
 }
 
 function stopPaymentStatusPolling() {
   if (paymentStatusInterval.value !== null) {
-    clearTimeout(paymentStatusInterval.value) // 使用 clearTimeout 因为现在是 setTimeout
+    clearTimeout(paymentStatusInterval.value) // Use clearTimeout because we're using setTimeout now
     paymentStatusInterval.value = null
   }
-  // 重置轮询配置
+  // Reset polling configuration
   pollingInterval = minPollingInterval
   pollingAttempts = 0
 }

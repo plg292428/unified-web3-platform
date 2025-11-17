@@ -27,7 +27,7 @@
         size="small"
         :loading="rpcLoading"
         @click="refreshRpc"
-        :title="'刷新 RPC 状态'"
+        :title="'Refresh RPC Status'"
       ></v-btn>
     </v-card-title>
     <v-card-text class="text-caption text-grey-lighten-2">
@@ -66,7 +66,7 @@
               color="primary"
               variant="text"
             >
-              {{ providerTip.linkLabel ?? '前往' }}
+              {{ providerTip.linkLabel ?? 'Go' }}
             </v-btn>
           </div>
         </template>
@@ -88,7 +88,7 @@
           {{ status.name }} · {{ formatLatency(status) }}
         </v-chip>
       </div>
-      <div v-else class="text-grey text-body-2">点击右上角刷新按钮以检测 RPC 延迟。</div>
+      <div v-else class="text-grey text-body-2">Click the refresh button in the top right corner to detect RPC latency.</div>
     </v-card-text>
   </v-card>
 </template>
@@ -107,10 +107,10 @@ const connectLoading = ref(false)
 
 const walletProviderLabel = computed(() => {
   if (!state.value.initialized) {
-    return '未检测'
+    return 'Not Detected'
   }
   if (!state.value.providerName) {
-    return '未检测到钱包'
+    return 'No Wallet Detected'
   }
   return state.value.providerName
 })
@@ -126,14 +126,14 @@ const walletActive = computed(() => state.value.active && !!state.value.address)
 
 const displayAddress = computed(() => {
   if (!state.value.address) {
-    return '未连接'
+    return 'Not Connected'
   }
   return shortenAddress(state.value.address)
 })
 
 const displayNetwork = computed(() => {
   if (!state.value.active || !state.value.networkName) {
-    return '未连接'
+    return 'Not Connected'
   }
   return state.value.networkName
 })
@@ -154,17 +154,17 @@ const providerTip = computed(() => {
   if (!state.value.providerName) {
     return {
       type: 'warning' as const,
-      message: '未检测到浏览器钱包，请先安装 Bitget Wallet 插件以获得完整体验。',
-      link: 'https://web3.bitget.com/zh/tools/wallet',
-      linkLabel: '下载 Bitget Wallet'
+      message: 'No browser wallet detected. Please install Bitget Wallet extension for full experience.',
+      link: 'https://web3.bitget.com/en/tools/wallet',
+      linkLabel: 'Download Bitget Wallet'
     }
   }
   if (state.value.providerType !== 'bitget') {
     return {
       type: 'info' as const,
-      message: `已检测到 ${state.value.providerName}，推荐使用 Bitget Wallet 以支持更多链与功能。`,
-      link: 'https://web3.bitget.com/zh/tools/wallet',
-      linkLabel: '了解 Bitget Wallet'
+      message: `${state.value.providerName} detected. We recommend using Bitget Wallet to support more chains and features.`,
+      link: 'https://web3.bitget.com/en/tools/wallet',
+      linkLabel: 'Learn About Bitget Wallet'
     }
   }
   return null
@@ -205,9 +205,9 @@ const formatLatency = (status: RpcStatus) => {
     return `${status.latency} ms`
   }
   if (status.status === 'fail') {
-    return '失败'
+    return 'Failed'
   }
-  return '待检测'
+  return 'Pending'
 }
 
 onMounted(async () => {

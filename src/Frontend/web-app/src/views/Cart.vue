@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-responsive>
-      <!-- 页面标题 -->
+      <!-- Page Title -->
       <div class="mt-2 d-flex align-center">
         <v-btn icon="mdi-arrow-left" variant="text" @click="goBack"></v-btn>
         <span class="text-subtitle-2">Shopping Cart</span>
@@ -18,7 +18,7 @@
         </v-btn>
       </div>
 
-      <!-- 未登录提示 -->
+      <!-- Not Logged In -->
       <template v-if="!userUid">
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-text class="text-center py-8">
@@ -39,7 +39,7 @@
         </v-card>
       </template>
 
-      <!-- 加载中 -->
+      <!-- Loading -->
       <template v-else-if="cartStore.loading && cartItems.length === 0">
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-text>
@@ -48,7 +48,7 @@
         </v-card>
       </template>
 
-      <!-- 购物车为空 -->
+      <!-- Empty Cart -->
       <template v-else-if="cartItems.length === 0">
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-text class="text-center py-8">
@@ -65,7 +65,7 @@
         </v-card>
       </template>
 
-      <!-- 购物车内容 -->
+      <!-- Cart Content -->
       <template v-else>
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-title class="d-flex align-center">
@@ -178,7 +178,7 @@
           </v-card-text>
         </v-card>
 
-        <!-- 订单摘要 -->
+        <!-- Order Summary -->
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-title class="text-subtitle-1">Order Summary</v-card-title>
           <v-divider></v-divider>
@@ -202,7 +202,7 @@
           </v-card-text>
           <v-divider></v-divider>
           
-          <!-- 支付方式选择 -->
+          <!-- Payment Method Selection -->
           <v-card-text class="pt-4">
             <PaymentMethodSelector
               v-model="selectedPaymentMode"
@@ -226,14 +226,14 @@
         </v-card>
       </template>
 
-      <!-- 订单支付对话框 -->
+      <!-- Order Payment Dialog -->
       <OrderPaymentDialog
         v-model="orderPaymentDialog"
         :order="orderPaymentDetail"
         @payment-success="handlePaymentSuccess"
       />
 
-      <!-- 订单成功对话框 -->
+      <!-- Order Success Dialog -->
       <v-dialog v-model="orderSuccessDialog" max-width="520" persistent>
         <v-card>
           <v-card-title class="d-flex align-center">
@@ -309,7 +309,7 @@ const orderPaymentDialog = ref(false)
 const orderPaymentDetail = ref<StoreOrderDetailResult | null>(null)
 const orderSuccessDialog = ref(false)
 const orderSuccessDetail = ref<StoreOrderDetailResult | null>(null)
-// 根据钱包状态初始化支付方式
+// Initialize payment mode based on wallet status
 const walletState = computed(() => walletStore.state)
 const initialPaymentMode = computed(() => {
   if (walletState.value.active && walletState.value.provider !== null) {
@@ -328,7 +328,7 @@ const cartCurrency = computed(() => cartItems.value[0]?.currency ?? 'USDT')
 const apiBaseUrl = WebApi.getInstance().baseUrl ?? ''
 
 function resolveProductImage(item: StoreCartItemResult) {
-  // 购物车项可能没有图片URL，使用占位符
+  // Cart items may not have image URL, use placeholder
   return productPlaceholderImage
 }
 
@@ -415,7 +415,7 @@ async function handlePlaceOrder() {
     return
   }
   
-  // 验证支付方式选择
+  // Validate payment method selection
   if (selectedPaymentMode.value === StorePaymentMode.Web3) {
     const walletState = walletStore.state
     if (!walletState.active || !walletState.provider || !walletState.address) {
@@ -445,12 +445,12 @@ async function handlePlaceOrder() {
       remark: 'Cart checkout'
     })
     
-    // 如果是 Web3 支付且需要签名，打开支付对话框
+    // If Web3 payment and signature required, open payment dialog
     if (isWeb3Payment && order.paymentStatus === StorePaymentStatus.PendingSignature) {
       orderPaymentDetail.value = order
       orderPaymentDialog.value = true
     } else {
-      // 传统支付或已完成的支付，显示成功对话框
+      // Traditional payment or completed payment, show success dialog
       orderSuccessDetail.value = order
       orderSuccessDialog.value = true
       FastDialog.successSnackbar('Order created successfully')
@@ -472,7 +472,7 @@ function handlePaymentSuccess(order: StoreOrderDetailResult) {
 function closeOrderSuccessDialog() {
   orderSuccessDialog.value = false
   orderSuccessDetail.value = null
-  // 刷新购物车
+  // Refresh cart
   const uid = userUid.value
   if (uid) {
     cartStore.refresh(uid)
@@ -499,13 +499,13 @@ function getOrderStatusMeta(status: StoreOrderStatus) {
 async function handleLogin() {
   loggingIn.value = true
   try {
-    // 检查是否有钱包提供方
+    // Check if wallet provider exists
     if (!walletStore.state.provider) {
       FastDialog.warningSnackbar('Please connect your wallet first. If you don\'t have a wallet, please install MetaMask or Bitget Wallet.')
       return
     }
 
-    // 检查钱包是否已连接账户
+    // Check if wallet is connected
     if (!walletStore.state.active || !walletStore.state.address) {
       try {
         FastDialog.infoSnackbar('Connecting wallet...')
@@ -521,14 +521,14 @@ async function handleLogin() {
       }
     }
 
-    // 检查是否已登录
+    // Check if already logged in
     const checkSignedResult = await userStore.checkSigned()
     if (!checkSignedResult.succeed) {
       FastDialog.errorSnackbar(checkSignedResult.errorMessage as string)
       return
     }
 
-    // 如果已登录，刷新购物车
+    // If logged in, refresh cart
     if (checkSignedResult.data?.singined) {
       const uid = userUid.value
       if (uid) {
@@ -538,7 +538,7 @@ async function handleLogin() {
       return
     }
 
-    // 需要签名登录
+    // Need to sign in
     FastDialog.infoSnackbar('Please sign the message in your wallet to login...')
     const from = walletStore.state.address
     const provider = walletStore.state.provider
@@ -549,21 +549,21 @@ async function handleLogin() {
       params: [message, from]
     })
 
-    // 执行登录
+    // Execute login
     const signResult = await userStore.signIn(signedText)
     if (!signResult.succeed) {
       FastDialog.errorSnackbar(signResult.errorMessage as string)
       return
     }
 
-    // 获取用户信息
+    // Get user info
     if (!(await userStore.updateUserInfo())) {
       userStore.signOut()
       FastDialog.errorSnackbar('Failed to get user information. Please try again.')
       return
     }
 
-    // 登录成功，刷新购物车
+    // Login successful, refresh cart
     const uid = userUid.value
     if (uid) {
       await cartStore.refresh(uid)
@@ -591,7 +591,7 @@ onBeforeMount(async () => {
       FastDialog.errorSnackbar((error as Error).message ?? 'Failed to load cart')
     }
   }
-  // 未登录时不跳转，显示登录提示
+  // Don't redirect if not logged in, show login prompt
 })
 </script>
 

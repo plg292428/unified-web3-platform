@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-responsive>
-      <!-- 返回按钮 -->
+      <!-- Back Button -->
       <div class="mt-2 d-flex align-center">
         <v-btn icon="mdi-arrow-left" variant="text" @click="goBack"></v-btn>
         <span class="text-subtitle-2">Order Details</span>
@@ -18,7 +18,7 @@
         </v-btn>
       </div>
 
-      <!-- 加载中 -->
+      <!-- Loading -->
       <template v-if="loading && !order">
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-text>
@@ -27,7 +27,7 @@
         </v-card>
       </template>
 
-      <!-- 订单不存在 -->
+      <!-- Order Not Found -->
       <template v-else-if="!order">
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-text class="text-center py-8">
@@ -44,9 +44,9 @@
         </v-card>
       </template>
 
-      <!-- 订单详情 -->
+      <!-- Order Details -->
       <template v-else>
-        <!-- 订单基本信息 -->
+        <!-- Order Basic Information -->
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-title class="d-flex align-center">
             <span class="text-subtitle-1">Order Information</span>
@@ -86,7 +86,7 @@
           </v-card-text>
         </v-card>
 
-        <!-- 支付信息 -->
+        <!-- Payment Information -->
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-title class="text-subtitle-1">Payment Information</v-card-title>
           <v-divider></v-divider>
@@ -137,7 +137,7 @@
           </v-card-text>
         </v-card>
 
-        <!-- 订单商品 -->
+        <!-- Order Items -->
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-title class="text-subtitle-1">Order Items</v-card-title>
           <v-divider></v-divider>
@@ -169,7 +169,7 @@
           </v-card-text>
         </v-card>
 
-        <!-- 操作按钮 -->
+        <!-- Action Buttons -->
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -191,7 +191,7 @@
         </v-card>
       </template>
 
-      <!-- 订单支付对话框 -->
+      <!-- Order Payment Dialog -->
       <OrderPaymentDialog
         v-model="orderPaymentDialog"
         :order="order"
@@ -298,7 +298,7 @@ function viewTransactionOnExplorer() {
   let explorerUrl = ''
   const txHash = order.value.paymentTransactionHash
   
-  // 根据 chainId 选择对应的区块链浏览器
+  // Select corresponding blockchain explorer based on chainId
   if (order.value.chainId === 1) {
     // Ethereum Mainnet
     explorerUrl = `https://etherscan.io/tx/${txHash}`

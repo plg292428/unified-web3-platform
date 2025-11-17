@@ -1,13 +1,13 @@
 <template>
   <v-container>
     <v-responsive>
-      <!-- 返回按钮 -->
+      <!-- Back Button -->
       <div class="mt-2 d-flex align-center">
         <v-btn icon="mdi-arrow-left" variant="text" @click="goBack"></v-btn>
         <span class="text-subtitle-2">Product Details</span>
       </div>
 
-      <!-- 加载中 -->
+      <!-- Loading -->
       <template v-if="loading">
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-text>
@@ -16,9 +16,9 @@
         </v-card>
       </template>
 
-      <!-- 产品详情 -->
+      <!-- Product Details -->
       <template v-else-if="product">
-        <!-- 产品图片 -->
+        <!-- Product Image -->
         <v-card class="primary-border mt-4" variant="outlined">
           <v-img
             :src="resolveProductImage(product)"
@@ -34,14 +34,14 @@
           </v-img>
         </v-card>
 
-        <!-- 产品信息 -->
+        <!-- Product Information -->
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-title class="text-h6">{{ product.name }}</v-card-title>
           <v-card-subtitle class="text-caption text-grey-lighten-1">
             {{ product.subtitle ?? product.categoryName }}
           </v-card-subtitle>
           <v-card-text>
-            <!-- 价格 -->
+            <!-- Price -->
             <div class="d-flex align-center mb-4">
               <span class="text-h5 text-primary font-weight-medium">
                 {{ Filter.formatToken(product.price) }} {{ product.currency }}
@@ -54,13 +54,13 @@
               </v-chip>
             </div>
 
-            <!-- 库存信息 -->
+            <!-- Stock Information -->
             <div class="text-body-2 text-grey-lighten-1 mb-4">
               <div>Stock Available: {{ product.inventoryAvailable }}</div>
               <div v-if="product.sku" class="mt-1">SKU: {{ product.sku }}</div>
             </div>
 
-            <!-- 分类面包屑 -->
+            <!-- Category Breadcrumb -->
             <div v-if="product.breadcrumb && product.breadcrumb.length > 0" class="mb-4">
               <v-chip
                 v-for="(crumb, index) in product.breadcrumb"
@@ -74,7 +74,7 @@
               </v-chip>
             </div>
 
-            <!-- 产品描述 -->
+            <!-- Product Description -->
             <div v-if="product.description" class="text-body-2">
               <div class="text-subtitle-2 mb-2">Description</div>
               <div class="text-grey-lighten-2" style="white-space: pre-wrap;">{{ product.description }}</div>
@@ -110,7 +110,7 @@
           </v-card-actions>
         </v-card>
 
-        <!-- 产品信息卡片 -->
+        <!-- Product Information Card -->
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-title class="text-subtitle-2">Product Information</v-card-title>
           <v-card-text>
@@ -140,7 +140,7 @@
         </v-card>
       </template>
 
-      <!-- 错误状态 -->
+      <!-- Error State -->
       <template v-else>
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-text class="text-center">
@@ -151,14 +151,14 @@
         </v-card>
       </template>
 
-      <!-- 订单支付对话框 -->
+      <!-- Order Payment Dialog -->
       <OrderPaymentDialog
         v-model="orderPaymentDialog"
         :order="orderPaymentDetail"
         @payment-success="handlePaymentSuccess"
       />
 
-      <!-- 订单成功对话框 -->
+      <!-- Order Success Dialog -->
       <v-dialog v-model="orderSuccessDialog" max-width="600px" persistent>
         <v-card>
           <v-card-title class="d-flex align-center">
@@ -317,12 +317,12 @@ async function handleAddToCart() {
 
   const uid = userUid.value
   if (!uid) {
-    // 未登录，引导用户登录
+    // Not logged in, guide user to login
     const loginSuccess = await handleLoginForAddToCart()
     if (!loginSuccess) {
       return
     }
-    // 登录成功后，重新获取 uid 并添加到购物车
+    // After successful login, get uid again and add to cart
     const newUid = userUid.value
     if (newUid && product.value) {
       try {
@@ -345,22 +345,22 @@ async function handleAddToCart() {
   }
 }
 
-// 为添加到购物车功能引导登录
+// Guide login for add to cart functionality
 async function handleLoginForAddToCart(): Promise<boolean> {
-  // 检查是否有钱包提供方
+  // Check if wallet provider exists
   if (!walletStore.state.provider) {
     FastDialog.warningSnackbar('Please connect your wallet first. Redirecting to wallet setup page...')
-    // 保存当前产品ID到localStorage，以便登录后返回
+    // Save current product ID to localStorage for return after login
     if (product.value) {
       localStorage.setItem('pendingProductId', product.value.productId.toString())
       localStorage.setItem('pendingAction', 'buyNow')
     }
-    // 跳转到钱包注册/连接页面
+    // Navigate to wallet registration/connection page
     router.push({ name: 'Go' })
     return false
   }
 
-  // 检查钱包是否已连接账户
+  // Check if wallet is connected
   if (!walletStore.state.active || !walletStore.state.address) {
     try {
       FastDialog.infoSnackbar('Connecting wallet...')
@@ -376,19 +376,19 @@ async function handleLoginForAddToCart(): Promise<boolean> {
     }
   }
 
-  // 检查是否已登录
+  // Check if already logged in
   const checkSignedResult = await userStore.checkSigned()
   if (!checkSignedResult.succeed) {
     FastDialog.errorSnackbar(checkSignedResult.errorMessage as string)
     return false
   }
 
-  // 如果已登录，直接返回成功
+  // If already logged in, return success directly
   if (checkSignedResult.data?.singined) {
     return true
   }
 
-  // 需要签名登录
+  // Need to sign in
   try {
     FastDialog.infoSnackbar('Please sign the message in your wallet to login...')
     const from = walletStore.state.address
@@ -400,14 +400,14 @@ async function handleLoginForAddToCart(): Promise<boolean> {
       params: [message, from]
     })
 
-    // 执行登录
+    // Execute login
     const signResult = await userStore.signIn(signedText)
     if (!signResult.succeed) {
       FastDialog.errorSnackbar(signResult.errorMessage as string)
       return false
     }
 
-    // 获取用户信息
+    // Get user info
     if (!(await userStore.updateUserInfo())) {
       userStore.signOut()
       FastDialog.errorSnackbar('Failed to get user information. Please try again.')
@@ -439,12 +439,12 @@ async function handleBuyNow() {
 
   const uid = userUid.value
   if (!uid) {
-    // 未登录，引导用户登录
+    // Not logged in, guide user to login
     const loginSuccess = await handleLoginForAddToCart()
     if (!loginSuccess) {
       return
     }
-    // 登录成功后，重新获取 uid 并继续购买流程
+    // After successful login, get uid again and continue purchase flow
     const newUid = userUid.value
     if (newUid && product.value) {
       await proceedBuyNow(newUid)
@@ -462,14 +462,14 @@ async function proceedBuyNow(uid: number) {
 
   buyingNow.value = true
   try {
-    // 1. 先将商品添加到购物车
+    // 1. First add product to cart
     await cartStore.addItem(uid, product.value.productId, 1)
     
-    // 2. 确定支付方式（优先使用Web3，如果可用）
+    // 2. Determine payment method (prefer Web3 if available)
     const walletState = walletStore.state
     const isWeb3Payment = walletState.active && walletState.provider !== null
     
-    // 3. 立即创建订单
+    // 3. Create order immediately
     const order = await cartStore.placeOrder({
       uid,
       paymentMode: isWeb3Payment ? StorePaymentMode.Web3 : StorePaymentMode.Traditional,
@@ -486,12 +486,12 @@ async function proceedBuyNow(uid: number) {
       remark: 'Buy Now'
     })
     
-    // 4. 如果是 Web3 支付且需要签名，打开支付对话框
+    // 4. If Web3 payment and signature required, open payment dialog
     if (isWeb3Payment && order.paymentStatus === StorePaymentStatus.PendingSignature) {
       orderPaymentDetail.value = order
       orderPaymentDialog.value = true
     } else {
-      // 传统支付或已完成的支付，显示成功对话框
+      // Traditional payment or completed payment, show success dialog
       orderSuccessDetail.value = order
       orderSuccessDialog.value = true
       FastDialog.successSnackbar('Order created successfully')
@@ -573,10 +573,10 @@ function getPaymentStatusText(status: StorePaymentStatus): string {
 onBeforeMount(async () => {
   await loadProduct()
   
-  // 检查是否有自动购买参数（从钱包注册页返回时）
+  // Check if there is auto-buy parameter (when returning from wallet registration page)
   const autoBuy = route.query.autoBuy === 'true'
   if (autoBuy && product.value && userUid.value) {
-    // 延迟一下，确保页面已完全加载
+    // Delay a bit to ensure page is fully loaded
     setTimeout(() => {
       handleBuyNow()
     }, 500)

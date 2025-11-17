@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-responsive>
-      <!--个人信息-->
+      <!-- Personal Information -->
       <v-row v-if="isSigned" no-gutters justify="center" align="center" align-content="center">
         <v-col cols="3" class="text-center">
           <v-avatar color="#ffffff14" size="64" image="@/assets/male_ava.svg"></v-avatar>
@@ -38,9 +38,9 @@
           </div>
         </v-col>
       </v-row>
-      <!--个人信息-->
+      <!-- Personal Information -->
 
-      <!--异常通知-->
+      <!-- Anomaly Notification -->
       <v-card v-if="userStore.state.userInfo?.anomaly" class="mt-4 primary-border" variant="outlined">
         <v-alert type="error">
           <template v-slot:text>
@@ -50,11 +50,11 @@
           </template>
         </v-alert>
       </v-card>
-      <!--异常通知-->
+      <!-- Anomaly Notification -->
 
       <WalletStatusCard />
 
-      <!-- 商品展示 -->
+      <!-- Product Display -->
       <div class="mt-6">
         <div class="ml-1 d-flex align-center text-subtitle-2">
           Hot Products
@@ -66,7 +66,7 @@
           </v-btn>
         </div>
 
-        <!-- 搜索和筛选 -->
+        <!-- Search and Filter -->
         <v-row dense class="mt-3">
           <v-col cols="12" md="6">
             <v-text-field
@@ -213,9 +213,9 @@
           @update:modelValue="handlePagination"
         />
       </div>
-      <!-- 商品展示 -->
+      <!-- Product Display -->
 
-      <!-- 最新订单 -->
+      <!-- Latest Orders -->
       <div class="mt-6">
         <div class="ml-1 d-flex align-center text-subtitle-2">
           Recent Orders
@@ -256,7 +256,7 @@
           </v-data-table>
         </v-card>
       </div>
-      <!-- 最新订单 -->
+      <!-- Latest Orders -->
 
       <!--资产-->
       <v-row v-if="isSigned" dense class="mt-4">

@@ -16,7 +16,7 @@
         </v-btn>
       </div>
 
-      <!-- 订单筛选 -->
+      <!-- Order Filter -->
       <v-row dense class="mt-3">
         <v-col cols="12" md="4">
           <v-select
@@ -60,7 +60,7 @@
         </v-col>
       </v-row>
 
-      <!-- 订单列表 -->
+      <!-- Order List -->
       <div class="mt-4">
         <template v-if="orderListLoading && orderList.length === 0">
           <v-card v-for="n in 3" :key="`order-skel-${n}`" class="primary-border mt-3" variant="outlined">
@@ -121,7 +121,7 @@
                 </v-col>
               </v-row>
 
-              <!-- 订单状态流转 -->
+              <!-- Order Status Flow -->
               <v-timeline v-if="order.paymentMode === StorePaymentMode.Web3" density="compact" class="mt-3">
                 <v-timeline-item
                   :dot-color="order.paymentStatus >= StorePaymentStatus.PendingSignature ? 'primary' : 'grey'"
@@ -146,7 +146,7 @@
                 </v-timeline-item>
               </v-timeline>
 
-              <!-- 订单操作 -->
+              <!-- Order Actions -->
               <v-card-actions class="mt-2">
                 <v-spacer></v-spacer>
                 <v-btn
@@ -170,7 +170,7 @@
             </v-card-text>
           </v-card>
 
-          <!-- 分页 -->
+          <!-- Pagination -->
           <v-pagination
             v-if="orderTotal > orderPageSize"
             class="mt-4"
@@ -214,20 +214,20 @@ const cartStore = useCartStore()
 
 const userUid = computed(() => userStore.state.userInfo?.uid ?? null)
 
-// 订单列表
+// Order list
 const orderList = ref<StoreOrderSummaryResult[]>([])
 const orderListLoading = ref(false)
 const orderPage = ref(1)
 const orderPageSize = ref(10)
 const orderTotal = ref(0)
 
-// 筛选
+// Filter
 const filterStatus = ref<StoreOrderStatus | null>(null)
 const filterPaymentMode = ref<StorePaymentMode | null>(null)
 const searchOrderNumber = ref<string>('')
 
 
-// 状态选项
+// Status options
 const statusOptions = [
   { label: 'Pending Payment', value: StoreOrderStatus.PendingPayment },
   { label: 'Paid', value: StoreOrderStatus.Paid },
@@ -245,7 +245,7 @@ const orderTotalPages = computed(() => {
   return total > 0 ? total : 1
 })
 
-// 搜索防抖
+// Search debounce
 let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 function onSearchChange() {
   if (searchDebounceTimer) {
@@ -405,7 +405,7 @@ function startOrderAutoRefresh() {
         await loadOrders()
       }
     }
-  }, 30000) // 30 秒
+  }, 30000) // 30 seconds
 }
 
 function stopOrderAutoRefresh() {
@@ -415,7 +415,7 @@ function stopOrderAutoRefresh() {
   }
 }
 
-// 监听用户登录状态
+// Watch user login status
 watch(userUid, async (uid) => {
   if (uid) {
     await loadOrders()
@@ -426,7 +426,7 @@ watch(userUid, async (uid) => {
   }
 }, { immediate: true })
 
-// 组件挂载
+// Component mounted
 onBeforeMount(async () => {
   if (userUid.value) {
     await loadOrders()
@@ -434,7 +434,7 @@ onBeforeMount(async () => {
   }
 })
 
-// 组件卸载
+// Component unmounted
 onUnmounted(() => {
   stopOrderAutoRefresh()
 })

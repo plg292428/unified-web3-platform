@@ -70,11 +70,11 @@ function getWalletIcon(name: string) {
   return new URL(`../assets/wallets/${name}.webp`, import.meta.url).href
 }
 
-// 登录处理
+// Login handling
 async function getStarted() {
   buttonLoading.value = true
 
-  // 检查登录
+  // Check login
   const userStore = useUserStore()
   const checkSignedResult = await userStore.checkSigned()
 
@@ -85,16 +85,16 @@ async function getStarted() {
   }
 
   if (checkSignedResult.data?.singined) {
-    // 检查是否有待处理的产品购买操作
+    // Check if there is pending product purchase operation
     const pendingProductId = localStorage.getItem('pendingProductId')
     const pendingAction = localStorage.getItem('pendingAction')
     
     if (pendingProductId && pendingAction === 'buyNow') {
-      // 清除待处理操作标记
+      // Clear pending operation markers
       localStorage.removeItem('pendingProductId')
       localStorage.removeItem('pendingAction')
       
-      // 跳转到产品详情页，并触发购买操作
+      // Navigate to product detail page and trigger purchase operation
       router.push({ 
         name: 'ProductDetail', 
         params: { productId: pendingProductId },
@@ -106,7 +106,7 @@ async function getStarted() {
     return
   }
 
-  // 签名
+  // Sign
   const from = walletStore.state.address
   const provider = walletStore.state.provider
   const message = `0x${checkSignedResult.data.tokenText}`;
@@ -125,7 +125,7 @@ async function getStarted() {
     })
 }
 
-// 登入
+// Sign in
 async function signIn(signedText: string) {
   const userStore = useUserStore()
   const signResult = await userStore.signIn(signedText)
@@ -135,7 +135,7 @@ async function signIn(signedText: string) {
     return
   }
 
-  // 获取一次用户信息
+  // Get user info once
   if (!(await userStore.updateUserInfo())) {
     userStore.signOut()
     router.push({ name: 'Error500' })

@@ -3,7 +3,7 @@
     <v-card-title class="text-subtitle-1">Select Payment Method</v-card-title>
     <v-card-text>
       <v-radio-group v-model="selectedMethod" @update:model-value="handleMethodChange">
-        <!-- Web3 支付选项 -->
+        <!-- Web3 Payment Option -->
         <v-radio
           :value="StorePaymentMode.Web3"
           :disabled="!isWeb3Available"
@@ -24,7 +24,7 @@
           </template>
         </v-radio>
 
-        <!-- 传统支付选项 -->
+        <!-- Traditional Payment Option -->
         <v-radio :value="StorePaymentMode.Traditional">
           <template #label>
             <div class="d-flex align-center">
@@ -40,7 +40,7 @@
         </v-radio>
       </v-radio-group>
 
-      <!-- Web3 支付详情 -->
+      <!-- Web3 Payment Details -->
       <v-expand-transition>
         <div v-if="selectedMethod === StorePaymentMode.Web3 && isWeb3Available" class="mt-3 pa-3 bg-grey-darken-4 rounded">
           <div class="text-caption text-grey-lighten-1 mb-2">Wallet Information</div>
@@ -81,7 +81,7 @@ const isWeb3Available = computed(() =>
   walletState.value.address !== null
 )
 
-// 如果Web3不可用，自动切换到传统支付
+// Auto-switch to traditional payment if Web3 is not available
 watch(isWeb3Available, (available) => {
   if (!available && selectedMethod.value === StorePaymentMode.Web3) {
     selectedMethod.value = StorePaymentMode.Traditional
@@ -89,19 +89,19 @@ watch(isWeb3Available, (available) => {
   }
 })
 
-// 监听外部值变化
+// Watch external value changes
 watch(() => props.modelValue, (newValue) => {
   if (newValue !== selectedMethod.value) {
     selectedMethod.value = newValue
   }
 })
 
-// 监听选择变化
+// Watch selection changes
 watch(selectedMethod, (newValue) => {
   emit('update:modelValue', newValue)
 })
 
-// 加载保存的支付偏好或根据钱包状态自动选择
+// Load saved payment preference or auto-select based on wallet status
 onMounted(() => {
   const savedMethod = localStorage.getItem('preferredPaymentMethod')
   if (savedMethod) {
@@ -117,7 +117,7 @@ onMounted(() => {
     }
   }
   
-  // 如果没有保存的偏好，根据钱包状态自动选择
+  // If no saved preference, auto-select based on wallet status
   if (isWeb3Available.value) {
     selectedMethod.value = StorePaymentMode.Web3
     emit('update:modelValue', StorePaymentMode.Web3)
@@ -128,7 +128,7 @@ onMounted(() => {
 })
 
 function handleMethodChange(value: StorePaymentMode) {
-  // 保存支付偏好
+  // Save payment preference
   localStorage.setItem('preferredPaymentMethod', value.toString())
 }
 
