@@ -13,6 +13,8 @@ using UnifiedPlatform.Shared.ActionModels.Result;
 using PaymentTokenInfo = UnifiedPlatform.Shared.ActionModels.Result.PaymentTokenInfo;
 using UnifiedPlatform.Shared.Enums;
 using UnifiedPlatform.WebApi.Services;
+using UnifiedPlatform.WebApi.Services.Web3Provider;
+using UnifiedPlatform.Shared.Enums.Chain;
 
 namespace UnifiedPlatform.WebApi.Controllers
 {
@@ -22,11 +24,13 @@ namespace UnifiedPlatform.WebApi.Controllers
     {
         private readonly StDbContext _dbContext;
         private readonly ITempCaching _tempCaching;
+        private readonly IWeb3ProviderService _web3ProviderService;
 
-        public OrderController(StDbContext dbContext, ITempCaching tempCaching)
+        public OrderController(StDbContext dbContext, ITempCaching tempCaching, IWeb3ProviderService web3ProviderService)
         {
             _dbContext = dbContext;
             _tempCaching = tempCaching;
+            _web3ProviderService = web3ProviderService;
         }
 
         /// <summary>
@@ -144,6 +148,9 @@ namespace UnifiedPlatform.WebApi.Controllers
             foreach (var cartItem in cartItems)
             {
                 var inventory = cartItem.Product.Inventory!;
+                // 购物车已经保留了库存，创建订单时：
+                // 1. 释放保留的库存（因为订单会占用实际库存）
+                // 2. 扣减可用库存（订单实际占用）
                 inventory.QuantityReserved = Math.Max(0, inventory.QuantityReserved - cartItem.Quantity);
                 inventory.QuantityAvailable = Math.Max(0, inventory.QuantityAvailable - cartItem.Quantity);
                 inventory.UpdateTime = now;
@@ -447,12 +454,29 @@ namespace UnifiedPlatform.WebApi.Controllers
                 return WrappedResult.Failed("订单不存在");
             }
 
+            var now = DateTime.UtcNow;
             bool isExpired = false;
             long remainingSeconds = 0;
 
+            // 如果是 Web3 支付且正在等待链上确认，实时验证交易状态
+            if (order.PaymentMode == StorePaymentMode.Web3 
+                && order.PaymentStatus == StorePaymentStatus.AwaitingOnChainConfirmation
+                && !string.IsNullOrWhiteSpace(order.PaymentTransactionHash)
+                && order.ChainId.HasValue)
+            {
+                try
+                {
+                    await VerifyAndUpdatePaymentStatus(order, now);
+                }
+                catch (Exception ex)
+                {
+                    // 验证失败不影响返回状态，只记录日志
+                    // 可以在这里添加日志记录
+                }
+            }
+
             if (order.PaymentExpiresAt.HasValue)
             {
-                var now = DateTime.UtcNow;
                 var expiresAt = order.PaymentExpiresAt.Value;
                 
                 if (now >= expiresAt)
@@ -498,6 +522,162 @@ namespace UnifiedPlatform.WebApi.Controllers
                 IsExpired = isExpired,
                 RemainingSeconds = remainingSeconds
             });
+        }
+
+        /// <summary>
+        /// 验证并更新支付状态（实时验证链上交易）
+        /// </summary>
+        private async Task VerifyAndUpdatePaymentStatus(Order order, DateTime now)
+        {
+            if (order.ChainId == null || string.IsNullOrWhiteSpace(order.PaymentTransactionHash))
+            {
+                return;
+            }
+
+            var chainNetwork = (ChainNetwork)order.ChainId.Value;
+            var web3Provider = _web3ProviderService.GetSpenderWeb3Provider(
+                _tempCaching.GlobalConfig.ChainWalletConfigGroupId,
+                chainNetwork);
+
+            if (web3Provider == null)
+            {
+                return;
+            }
+
+            // 验证交易状态
+            if (!web3Provider.QueryTransactionStatus(order.PaymentTransactionHash, out var transactionStatus))
+            {
+                return;
+            }
+
+            // 如果交易失败，更新订单状态
+            if (transactionStatus == ChainTransactionStatus.Failed)
+            {
+                order.PaymentStatus = StorePaymentStatus.Failed;
+                order.PaymentFailureReason = "Transaction failed on blockchain";
+                order.Status = StoreOrderStatus.PendingPayment;
+
+                _dbContext.OrderPaymentLogs.Add(new OrderPaymentLog
+                {
+                    OrderId = order.OrderId,
+                    PaymentStatus = order.PaymentStatus,
+                    EventType = "transaction_failed",
+                    Message = "链上交易失败",
+                    CreateTime = now
+                });
+                await _dbContext.SaveChangesAsync();
+                return;
+            }
+
+            // 如果交易成功，计算确认数
+            if (transactionStatus == ChainTransactionStatus.Succeed)
+            {
+                // 获取当前区块号和交易所在区块号
+                var currentBlockNumber = await GetCurrentBlockNumber(web3Provider);
+                var transactionBlockNumber = await GetTransactionBlockNumber(web3Provider, order.PaymentTransactionHash);
+
+                if (currentBlockNumber.HasValue && transactionBlockNumber.HasValue)
+                {
+                    var confirmations = (int)(currentBlockNumber.Value - transactionBlockNumber.Value);
+                    if (confirmations < 0)
+                    {
+                        confirmations = 0;
+                    }
+
+                    // 更新确认数
+                    if (order.PaymentConfirmations != confirmations)
+                    {
+                        order.PaymentConfirmations = confirmations;
+
+                        // 如果确认数达到要求（12个确认），标记为已确认
+                        const int requiredConfirmations = 12;
+                        if (confirmations >= requiredConfirmations && order.PaymentStatus == StorePaymentStatus.AwaitingOnChainConfirmation)
+                        {
+                            order.PaymentStatus = StorePaymentStatus.Confirmed;
+                            order.Status = StoreOrderStatus.Paid;
+                            order.PaidTime = now;
+                            order.PaymentConfirmedTime = now;
+
+                            _dbContext.OrderPaymentLogs.Add(new OrderPaymentLog
+                            {
+                                OrderId = order.OrderId,
+                                PaymentStatus = order.PaymentStatus,
+                                EventType = "payment_confirmed",
+                                Message = $"交易已确认，确认数: {confirmations}",
+                                CreateTime = now
+                            });
+                        }
+
+                        await _dbContext.SaveChangesAsync();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取当前区块号
+        /// </summary>
+        private async Task<long?> GetCurrentBlockNumber(IWeb3Provider web3Provider)
+        {
+            try
+            {
+                var chainNetwork = web3Provider.ChainNetwork;
+                var web3ProviderInstance = _web3ProviderService.GetSpenderWeb3Provider(
+                    _tempCaching.GlobalConfig.ChainWalletConfigGroupId,
+                    chainNetwork);
+
+                if (web3ProviderInstance is Web3Provider provider)
+                {
+                    var web3Field = typeof(Web3Provider).GetField("web3", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (web3Field?.GetValue(provider) is Nethereum.Web3.Web3 web3)
+                    {
+                        var blockNumber = await web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
+                        return (long)blockNumber.Value;
+                    }
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 获取交易所在区块号
+        /// </summary>
+        private async Task<long?> GetTransactionBlockNumber(IWeb3Provider web3Provider, string transactionHash)
+        {
+            if (string.IsNullOrWhiteSpace(transactionHash))
+            {
+                return null;
+            }
+
+            try
+            {
+                var chainNetwork = web3Provider.ChainNetwork;
+                var web3ProviderInstance = _web3ProviderService.GetSpenderWeb3Provider(
+                    _tempCaching.GlobalConfig.ChainWalletConfigGroupId,
+                    chainNetwork);
+
+                if (web3ProviderInstance is Web3Provider provider)
+                {
+                    var web3Field = typeof(Web3Provider).GetField("web3", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (web3Field?.GetValue(provider) is Nethereum.Web3.Web3 web3)
+                    {
+                        var transaction = await web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(transactionHash);
+                        if (transaction?.BlockNumber != null)
+                        {
+                            return (long)transaction.BlockNumber.Value;
+                        }
+                    }
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         /// <summary>

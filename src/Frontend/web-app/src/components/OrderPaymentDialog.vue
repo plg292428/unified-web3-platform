@@ -355,7 +355,18 @@ async function handleSignPayment() {
       const tx = await tokenContract.transfer(paymentAddress, amountWei)
       transactionHash = tx.hash
       
-      FastDialog.successSnackbar(`Transaction sent: ${transactionHash.substring(0, 10)}...`)
+      FastDialog.infoSnackbar(`Transaction sent: ${transactionHash.substring(0, 10)}... Waiting for confirmation...`)
+      
+      // 等待交易被挖矿（至少1个确认）
+      try {
+        const receipt = await tx.wait(1) // 等待至少1个确认
+        console.log('Transaction confirmed:', receipt)
+        FastDialog.successSnackbar(`Transaction confirmed! Block: ${receipt.blockNumber}`)
+      } catch (waitError: any) {
+        // 如果等待超时，仍然继续（交易可能还在pending）
+        console.warn('Transaction wait timeout, but transaction was sent:', waitError)
+        FastDialog.warningSnackbar('Transaction sent, but confirmation is taking longer than expected. Please wait...')
+      }
     } else {
       // 原生币转账（ETH/MATIC等）
       const { BrowserProvider, parseEther } = await import('ethers')
@@ -369,15 +380,28 @@ async function handleSignPayment() {
       })
       transactionHash = tx.hash
       
-      FastDialog.successSnackbar(`Transaction sent: ${transactionHash.substring(0, 10)}...`)
+      FastDialog.infoSnackbar(`Transaction sent: ${transactionHash.substring(0, 10)}... Waiting for confirmation...`)
+      
+      // 等待交易被挖矿（至少1个确认）
+      try {
+        const receipt = await tx.wait(1) // 等待至少1个确认
+        console.log('Transaction confirmed:', receipt)
+        FastDialog.successSnackbar(`Transaction confirmed! Block: ${receipt.blockNumber}`)
+      } catch (waitError: any) {
+        // 如果等待超时，仍然继续（交易可能还在pending）
+        console.warn('Transaction wait timeout, but transaction was sent:', waitError)
+        FastDialog.warningSnackbar('Transaction sent, but confirmation is taking longer than expected. Please wait...')
+      }
     }
 
     // 确认 Web3 支付，提交交易哈希和签名
+    // 注意：即使等待超时，我们也提交交易哈希，让后端继续验证
     const confirmPayload: StoreOrderWeb3ConfirmPayload = {
       uid: userStore.state.userInfo!.uid,
       paymentTransactionHash: transactionHash,
       paymentStatus: StorePaymentStatus.AwaitingOnChainConfirmation,
-      paymentSignatureResult: null // 签名主要用于验证，实际支付通过交易哈希确认
+      paymentSignatureResult: null, // 签名主要用于验证，实际支付通过交易哈希确认
+      paymentConfirmations: 1 // 如果等待成功，至少有1个确认
     }
     
     await confirmWeb3Payment(props.order.orderId, confirmPayload)
