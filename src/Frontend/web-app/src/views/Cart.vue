@@ -201,6 +201,15 @@
             </v-list>
           </v-card-text>
           <v-divider></v-divider>
+          
+          <!-- 支付方式选择 -->
+          <v-card-text class="pt-4">
+            <PaymentMethodSelector
+              v-model="selectedPaymentMode"
+              :disabled="placingOrder || cartStore.processing"
+            />
+          </v-card-text>
+          
           <v-card-actions class="pa-4">
             <v-btn
               color="primary"
@@ -280,6 +289,7 @@ import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
 import { useWalletStore } from '@/store/wallet'
 import OrderPaymentDialog from '@/components/OrderPaymentDialog.vue'
+import PaymentMethodSelector from '@/components/PaymentMethodSelector.vue'
 import type {
   StoreCartItemResult,
   StoreOrderDetailResult,
@@ -299,6 +309,15 @@ const orderPaymentDialog = ref(false)
 const orderPaymentDetail = ref<StoreOrderDetailResult | null>(null)
 const orderSuccessDialog = ref(false)
 const orderSuccessDetail = ref<StoreOrderDetailResult | null>(null)
+// 根据钱包状态初始化支付方式
+const walletState = computed(() => walletStore.state)
+const initialPaymentMode = computed(() => {
+  if (walletState.value.active && walletState.value.provider !== null) {
+    return StorePaymentMode.Web3
+  }
+  return StorePaymentMode.Traditional
+})
+const selectedPaymentMode = ref<StorePaymentMode>(initialPaymentMode.value)
 
 const userUid = computed(() => userStore.state.userInfo?.uid ?? null)
 const cartItems = computed(() => cartStore.items)
@@ -395,20 +414,34 @@ async function handlePlaceOrder() {
     FastDialog.warningSnackbar('Your cart is empty.')
     return
   }
+  
+  // 验证支付方式选择
+  if (selectedPaymentMode.value === StorePaymentMode.Web3) {
+    const walletState = walletStore.state
+    if (!walletState.active || !walletState.provider || !walletState.address) {
+      FastDialog.warningSnackbar('Please connect your wallet first to use Web3 payment.')
+      return
+    }
+  }
+  
   placingOrder.value = true
   try {
     const walletState = walletStore.state
-    const isWeb3Payment = walletState.active && walletState.provider !== null
+    const isWeb3Payment = selectedPaymentMode.value === StorePaymentMode.Web3
     
     const order = await cartStore.placeOrder({
       uid,
-      paymentMode: isWeb3Payment ? StorePaymentMode.Web3 : StorePaymentMode.Traditional,
-      paymentMethod: walletState.providerName ?? walletState.providerType ?? undefined,
-      paymentProviderType: walletState.providerType ?? undefined,
-      paymentProviderName: walletState.providerName ?? undefined,
-      paymentWalletAddress: walletState.address ?? undefined,
-      paymentWalletLabel: walletState.address ? formatWalletAddress(walletState.address) : undefined,
-      chainId: walletState.chainId > 0 ? walletState.chainId : undefined,
+      paymentMode: selectedPaymentMode.value,
+      paymentMethod: isWeb3Payment 
+        ? (walletState.providerName ?? walletState.providerType ?? 'Web3 Wallet')
+        : 'Traditional Payment',
+      paymentProviderType: isWeb3Payment ? walletState.providerType : undefined,
+      paymentProviderName: isWeb3Payment ? walletState.providerName : undefined,
+      paymentWalletAddress: isWeb3Payment ? walletState.address : undefined,
+      paymentWalletLabel: isWeb3Payment && walletState.address 
+        ? formatWalletAddress(walletState.address) 
+        : undefined,
+      chainId: isWeb3Payment && walletState.chainId > 0 ? walletState.chainId : undefined,
       remark: 'Cart checkout'
     })
     
@@ -420,7 +453,7 @@ async function handlePlaceOrder() {
       // 传统支付或已完成的支付，显示成功对话框
       orderSuccessDetail.value = order
       orderSuccessDialog.value = true
-      FastDialog.successSnackbar('Order created')
+      FastDialog.successSnackbar('Order created successfully')
     }
   } catch (error) {
     console.warn(error)

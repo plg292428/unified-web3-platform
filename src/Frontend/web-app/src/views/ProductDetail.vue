@@ -465,23 +465,28 @@ async function proceedBuyNow(uid: number) {
     // 1. 先将商品添加到购物车
     await cartStore.addItem(uid, product.value.productId, 1)
     
-    // 2. 立即创建订单
+    // 2. 确定支付方式（优先使用Web3，如果可用）
     const walletState = walletStore.state
     const isWeb3Payment = walletState.active && walletState.provider !== null
     
+    // 3. 立即创建订单
     const order = await cartStore.placeOrder({
       uid,
       paymentMode: isWeb3Payment ? StorePaymentMode.Web3 : StorePaymentMode.Traditional,
-      paymentMethod: walletState.providerName ?? walletState.providerType ?? undefined,
-      paymentProviderType: walletState.providerType ?? undefined,
-      paymentProviderName: walletState.providerName ?? undefined,
-      paymentWalletAddress: walletState.address ?? undefined,
-      paymentWalletLabel: walletState.address ? formatWalletAddress(walletState.address) : undefined,
-      chainId: walletState.chainId > 0 ? walletState.chainId : undefined,
+      paymentMethod: isWeb3Payment 
+        ? (walletState.providerName ?? walletState.providerType ?? 'Web3 Wallet')
+        : 'Traditional Payment',
+      paymentProviderType: isWeb3Payment ? walletState.providerType : undefined,
+      paymentProviderName: isWeb3Payment ? walletState.providerName : undefined,
+      paymentWalletAddress: isWeb3Payment ? walletState.address : undefined,
+      paymentWalletLabel: isWeb3Payment && walletState.address 
+        ? formatWalletAddress(walletState.address) 
+        : undefined,
+      chainId: isWeb3Payment && walletState.chainId > 0 ? walletState.chainId : undefined,
       remark: 'Buy Now'
     })
     
-    // 3. 如果是 Web3 支付且需要签名，打开支付对话框
+    // 4. 如果是 Web3 支付且需要签名，打开支付对话框
     if (isWeb3Payment && order.paymentStatus === StorePaymentStatus.PendingSignature) {
       orderPaymentDetail.value = order
       orderPaymentDialog.value = true

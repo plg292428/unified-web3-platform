@@ -29,12 +29,15 @@
           variant="tonal"
           class="mb-4"
         >
-          <div class="text-caption">{{ getPaymentStatusText(paymentStatus.paymentStatus) }}</div>
-          <div v-if="paymentStatus.isExpired" class="text-caption mt-1">
-            Payment expired
+          <div class="font-weight-medium mb-1">{{ getPaymentStatusText(paymentStatus.paymentStatus) }}</div>
+          <div v-if="paymentStatus.isExpired" class="text-caption mt-1 text-error">
+            ⚠️ Payment expired. Order has been cancelled.
           </div>
           <div v-else-if="paymentStatus.remainingSeconds > 0" class="text-caption mt-1">
-            Remaining time: {{ formatRemainingTime(paymentStatus.remainingSeconds) }}
+            ⏱️ Remaining time: <strong>{{ formatRemainingTime(paymentStatus.remainingSeconds) }}</strong>
+          </div>
+          <div v-if="paymentStatus.paymentConfirmations !== undefined && paymentStatus.paymentConfirmations > 0" class="text-caption mt-1">
+            ✅ Confirmations: {{ paymentStatus.paymentConfirmations }} / 12
           </div>
         </v-alert>
 
@@ -103,15 +106,45 @@
           type="error"
           variant="tonal"
           class="mb-4"
+          closable
+          @click:close="errorMessage = null"
         >
-          {{ errorMessage }}
+          <div class="font-weight-medium mb-1">Payment Error</div>
+          <div>{{ errorMessage }}</div>
+          <div v-if="retryCount > 0" class="text-caption mt-2">
+            Retry attempts: {{ retryCount }} / {{ maxRetries }}
+          </div>
+        </v-alert>
+        
+        <!-- 重试提示 -->
+        <v-alert
+          v-if="paymentStatus?.paymentStatus === StorePaymentStatus.Failed && retryCount < maxRetries"
+          type="warning"
+          variant="tonal"
+          class="mb-4"
+        >
+          <div class="text-caption">
+            Payment failed. You can retry the payment. ({{ maxRetries - retryCount }} attempts remaining)
+          </div>
         </v-alert>
       </v-card-text>
 
       <v-card-actions>
         <v-spacer></v-spacer>
+        <!-- 重试按钮（支付失败时显示） -->
         <v-btn
-          v-if="currentStep === 1"
+          v-if="paymentStatus?.paymentStatus === StorePaymentStatus.Failed && currentStep === 2"
+          color="warning"
+          variant="outlined"
+          :loading="processing"
+          @click="handleRetryPayment"
+          class="mr-2"
+        >
+          <v-icon start>mdi-refresh</v-icon>
+          Retry Payment
+        </v-btn>
+        <v-btn
+          v-if="currentStep === 1 && !processing"
           color="primary"
           :loading="processing"
           @click="handlePreparePayment"
@@ -124,13 +157,15 @@
           :loading="processing"
           @click="handleSignPayment"
         >
-          Sign Payment
+          <v-icon start>mdi-wallet</v-icon>
+          Sign & Pay
         </v-btn>
         <v-btn
           v-else-if="paymentStatus?.paymentStatus === StorePaymentStatus.Confirmed"
           color="success"
           @click="handleClose"
         >
+          <v-icon start>mdi-check-circle</v-icon>
           Complete
         </v-btn>
         <v-btn
@@ -139,6 +174,14 @@
           @click="handleClose"
         >
           Close
+        </v-btn>
+        <v-btn
+          v-else-if="currentStep === 3"
+          variant="text"
+          :disabled="processing"
+          @click="handleClose"
+        >
+          Close (Payment in progress)
         </v-btn>
         <v-btn
           v-else
@@ -196,6 +239,8 @@ const errorMessage = ref<string | null>(null)
 const paymentPrepareResult = ref<StoreOrderPreparePaymentResult | null>(null)
 const paymentStatus = ref<StoreOrderPaymentStatusResult | null>(null)
 const paymentStatusInterval = ref<ReturnType<typeof setTimeout> | null>(null)
+const retryCount = ref(0)
+const maxRetries = 3
 
 const StorePaymentStatus = PaymentStatusEnum
 
@@ -205,6 +250,10 @@ watch(dialog, (newValue) => {
     resetState()
     if (props.order.paymentStatus === StorePaymentStatus.PendingSignature) {
       currentStep.value = 1
+      // 自动开始准备支付
+      setTimeout(() => {
+        handlePreparePayment()
+      }, 300)
     } else if (props.order.paymentStatus === StorePaymentStatus.AwaitingOnChainConfirmation) {
       currentStep.value = 3
       startPaymentStatusPolling()
@@ -222,6 +271,7 @@ function resetState() {
   errorMessage.value = null
   paymentPrepareResult.value = null
   paymentStatus.value = null
+  retryCount.value = 0
   stopPaymentStatusPolling()
 }
 
@@ -346,8 +396,36 @@ async function handleSignPayment() {
       errorMessage.value = (error as Error).message ?? 'Transaction failed'
     }
     FastDialog.errorSnackbar(errorMessage.value)
+    
+    // 如果是可重试的错误，不重置步骤，允许重试
+    if (error.code !== 4001 && retryCount.value < maxRetries) {
+      // 保持在第2步，允许重试
+    } else {
+      // 用户取消或超过重试次数，重置到准备步骤
+      currentStep.value = 1
+      paymentPrepareResult.value = null
+    }
   } finally {
     processing.value = false
+  }
+}
+
+// 重试支付
+async function handleRetryPayment() {
+  if (retryCount.value >= maxRetries) {
+    FastDialog.errorSnackbar(`Maximum retry attempts (${maxRetries}) reached. Please try again later.`)
+    return
+  }
+  
+  retryCount.value++
+  errorMessage.value = null
+  
+  // 如果已经有准备结果，直接重试签名
+  if (paymentPrepareResult.value) {
+    await handleSignPayment()
+  } else {
+    // 否则重新准备支付
+    await handlePreparePayment()
   }
 }
 
@@ -458,6 +536,8 @@ async function checkPaymentStatus() {
       FastDialog.errorSnackbar(status.paymentFailureReason ?? 'Payment failed')
     } else if (status.isExpired) {
       stopPaymentStatusPolling()
+      currentStep.value = 1
+      errorMessage.value = 'Payment expired. The order has been automatically cancelled. Please create a new order.'
       FastDialog.errorSnackbar('Payment expired, order automatically cancelled')
     } else if (status.paymentStatus === StorePaymentStatus.AwaitingOnChainConfirmation) {
       currentStep.value = 3
