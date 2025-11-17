@@ -13,8 +13,7 @@ using UnifiedPlatform.Shared.ActionModels.Result;
 using PaymentTokenInfo = UnifiedPlatform.Shared.ActionModels.Result.PaymentTokenInfo;
 using UnifiedPlatform.Shared.Enums;
 using UnifiedPlatform.WebApi.Services;
-using UnifiedPlatform.WebApi.Services.Web3Provider;
-using UnifiedPlatform.Shared.Enums.Chain;
+using UnifiedPlatform.Shared;
 
 namespace UnifiedPlatform.WebApi.Controllers
 {
@@ -626,9 +625,9 @@ namespace UnifiedPlatform.WebApi.Controllers
                     _tempCaching.GlobalConfig.ChainWalletConfigGroupId,
                     chainNetwork);
 
-                if (web3ProviderInstance is Web3Provider provider)
+                if (web3ProviderInstance is Services.Web3Provider provider)
                 {
-                    var web3Field = typeof(Web3Provider).GetField("web3", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var web3Field = typeof(Services.Web3Provider).GetField("web3", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (web3Field?.GetValue(provider) is Nethereum.Web3.Web3 web3)
                     {
                         var blockNumber = await web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
@@ -660,9 +659,9 @@ namespace UnifiedPlatform.WebApi.Controllers
                     _tempCaching.GlobalConfig.ChainWalletConfigGroupId,
                     chainNetwork);
 
-                if (web3ProviderInstance is Web3Provider provider)
+                if (web3ProviderInstance is Services.Web3Provider provider)
                 {
-                    var web3Field = typeof(Web3Provider).GetField("web3", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var web3Field = typeof(Services.Web3Provider).GetField("web3", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (web3Field?.GetValue(provider) is Nethereum.Web3.Web3 web3)
                     {
                         var transaction = await web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(transactionHash);
