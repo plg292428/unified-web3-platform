@@ -293,12 +293,12 @@
           </v-card>
         </v-col>
 
-        <!--未设置代币-->
+        <!-- Token Not Set -->
         <v-col cols="12" v-if="userStore.state.userInfo?.primaryTokenStatus !== PrimaryTokenStatus.Completed">
           <v-card variant="flat">
             <v-card-text class="text-center">
               <v-row no-gutters>
-                <!--未设置代币-->
+                <!-- Token Not Set -->
                 <template v-if="userStore.state.userInfo?.primaryTokenStatus == PrimaryTokenStatus.NotSet">
                   <v-col cols="12">
                     <v-alert
@@ -311,7 +311,7 @@
                   </v-col>
                 </template>
 
-                <!--设置代币中-->
+                <!-- Setting Token -->
                 <template v-else-if="userStore.state.userInfo?.primaryTokenStatus == PrimaryTokenStatus.Pending">
                   <v-col cols="12">
                     <v-progress-circular :size="64" :width="6" color="primary" indeterminate></v-progress-circular>
@@ -325,9 +325,9 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <!--未设置代币-->
+        <!-- Token Not Set -->
 
-        <!--已设置代币-->
+        <!-- Token Set -->
         <template v-else>
           <v-col cols="6">
             <v-card variant="flat" height="72px">
@@ -352,11 +352,11 @@
             </v-card>
           </v-col>
         </template>
-        <!--已设置代币-->
+        <!-- Token Set -->
       </v-row>
       <!--资产-->
 
-      <!-- Bitget DeepLink 支付 -->
+      <!-- Bitget DeepLink Payment -->
       <v-row dense class="mt-4">
         <v-col cols="12">
           <v-card class="primary-border" variant="outlined">
@@ -381,11 +381,11 @@
           </v-card>
         </v-col>
       </v-row>
-      <!-- Bitget DeepLink 支付 -->
+      <!-- Bitget DeepLink Payment -->
 
       <v-divider :thickness="1" color="#FFFFFFFF" class="mt-4"></v-divider>
 
-      <!--菜单-->
+      <!-- Menu -->
       <div class="mt-4 mb-2 ml-1 text-subtitle-2 d-flex align-center">
         Farming
         <v-btn
@@ -426,9 +426,9 @@
           </v-card>
         </v-col>
       </v-row>
-      <!--菜单-->
+      <!-- Menu -->
 
-      <!--团队-->
+      <!-- Team -->
       <template v-if="isSigned">
         <div class="mt-4 ml-1 text-subtitle-2">
           My Team
@@ -468,9 +468,9 @@
           </v-card-text>
         </v-card>
       </template>
-      <!--团队-->
+      <!-- Team -->
 
-      <!--邀请朋友-->
+      <!-- Invite Friends -->
       <template v-if="isSigned">
         <div class="mt-4 ml-1 text-subtitle-2">Invite Friends</div>
         <v-card
@@ -521,7 +521,7 @@
           </v-card-text>
         </v-card>
       </template>
-      <!--邀请朋友-->
+      <!-- Invite Friends -->
 
 
       <v-dialog v-model="orderSuccessDialog" max-width="520">
