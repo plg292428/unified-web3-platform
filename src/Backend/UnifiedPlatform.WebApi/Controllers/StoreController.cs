@@ -243,68 +243,82 @@ public class StoreController : ApiControllerBase
     [HttpGet("products/{productId:long}")]
     public async Task<WrappedResult<StoreProductDetailResult>> ProductDetailAsync(long productId)
     {
-        var product = await _dbContext.Products
-            .AsNoTracking()
-            .Include(p => p.Category)
-            .Include(p => p.Inventory)
-            .FirstOrDefaultAsync(p => p.ProductId == productId && p.IsPublished);
-
-        if (product is null)
+        try
         {
-            return WrappedResult.Failed("商品不存在或未上架");
-        }
+            var product = await _dbContext.Products
+                .AsNoTracking()
+                .Include(p => p.Category)
+                .Include(p => p.Inventory)
+                .FirstOrDefaultAsync(p => p.ProductId == productId && p.IsPublished);
 
-        var categoryMap = await _dbContext.ProductCategories
-            .AsNoTracking()
-            .ToDictionaryAsync(c => c.CategoryId);
-
-        List<StoreProductCategoryBreadcrumbResult> breadcrumb = new();
-        if (categoryMap.TryGetValue(product.CategoryId, out var current))
-        {
-            while (current != null)
+            if (product is null)
             {
-                breadcrumb.Insert(0, new StoreProductCategoryBreadcrumbResult
-                {
-                    CategoryId = current.CategoryId,
-                    Name = current.Name,
-                    Slug = current.Slug
-                });
+                return WrappedResult.Failed("商品不存在或未上架");
+            }
 
-                if (current.ParentCategoryId.HasValue && categoryMap.TryGetValue(current.ParentCategoryId.Value, out var parent))
+            // 检查 Category 是否存在
+            if (product.Category is null)
+            {
+                return WrappedResult.Failed("商品分类不存在");
+            }
+
+            var categoryMap = await _dbContext.ProductCategories
+                .AsNoTracking()
+                .ToDictionaryAsync(c => c.CategoryId);
+
+            List<StoreProductCategoryBreadcrumbResult> breadcrumb = new();
+            if (categoryMap.TryGetValue(product.CategoryId, out var current))
+            {
+                while (current != null)
                 {
-                    current = parent;
-                }
-                else
-                {
-                    current = null;
+                    breadcrumb.Insert(0, new StoreProductCategoryBreadcrumbResult
+                    {
+                        CategoryId = current.CategoryId,
+                        Name = current.Name,
+                        Slug = current.Slug
+                    });
+
+                    if (current.ParentCategoryId.HasValue && categoryMap.TryGetValue(current.ParentCategoryId.Value, out var parent))
+                    {
+                        current = parent;
+                    }
+                    else
+                    {
+                        current = null;
+                    }
                 }
             }
+
+            var detail = new StoreProductDetailResult
+            {
+                ProductId = product.ProductId,
+                CategoryId = product.CategoryId,
+                CategoryName = product.Category?.Name ?? "未分类",
+                Name = product.Name,
+                Subtitle = product.Subtitle,
+                Description = product.Description,
+                ThumbnailUrl = product.ThumbnailUrl,
+                Price = product.Price,
+                Currency = product.Currency,
+                IsPublished = product.IsPublished,
+                InventoryAvailable = product.Inventory != null
+                    ? product.Inventory.QuantityAvailable - product.Inventory.QuantityReserved
+                    : 0,
+                InventoryReserved = product.Inventory?.QuantityReserved ?? 0,
+                ChainId = product.ChainId,
+                Sku = product.Sku,
+                CreateTime = product.CreateTime,
+                UpdateTime = product.UpdateTime,
+                Breadcrumb = breadcrumb
+            };
+
+            return WrappedResult.Ok(detail);
         }
-
-        var detail = new StoreProductDetailResult
+        catch (Exception ex)
         {
-            ProductId = product.ProductId,
-            CategoryId = product.CategoryId,
-            CategoryName = product.Category.Name,
-            Name = product.Name,
-            Subtitle = product.Subtitle,
-            Description = product.Description,
-            ThumbnailUrl = product.ThumbnailUrl,
-            Price = product.Price,
-            Currency = product.Currency,
-            IsPublished = product.IsPublished,
-            InventoryAvailable = product.Inventory != null
-                ? product.Inventory.QuantityAvailable - product.Inventory.QuantityReserved
-                : 0,
-            InventoryReserved = product.Inventory?.QuantityReserved ?? 0,
-            ChainId = product.ChainId,
-            Sku = product.Sku,
-            CreateTime = product.CreateTime,
-            UpdateTime = product.UpdateTime,
-            Breadcrumb = breadcrumb
-        };
-
-        return WrappedResult.Ok(detail);
+            // 记录错误日志（可以通过 ApiControllerBase 的日志功能记录）
+            return WrappedResult.Failed($"获取商品详情失败: {ex.Message}");
+        }
     }
 
     private async Task<HashSet<int>> GetCategoryDescendantIdsAsync(int categoryId)
