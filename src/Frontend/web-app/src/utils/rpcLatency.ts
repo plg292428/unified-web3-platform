@@ -27,10 +27,17 @@ export async function measureRpcLatency(url: string, options: MeasureOptions = {
     })
 
     if (!response.ok) {
+      // 401/403 等认证错误是预期的（API密钥可能无效），不抛出详细错误
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(`RPC authentication failed`)
+      }
       throw new Error(`HTTP ${response.status}`)
     }
     await response.json()
     return performance.now() - started
+  } catch (error) {
+    // 重新抛出错误，让调用者处理
+    throw error
   } finally {
     clearTimeout(timeout)
   }

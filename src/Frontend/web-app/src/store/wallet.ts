@@ -58,20 +58,23 @@ export const useWalletStore = defineStore('wallet', () => {
 
     if (!detectedProvider) {
       try {
-        const metamaskProvider = await detectEthereumProvider({ timeout: 3000 })
-        if (metamaskProvider) {
-          detectedProvider = metamaskProvider as Eip1193Provider
-          if ((metamaskProvider as any)?.isMetaMask) {
-            detectedType = 'metamask'
-            detectedName = 'MetaMask'
-          } else {
-            detectedType = 'ethereum'
-            detectedName = 'Injected Provider'
+        // 先检查 window.ethereum 是否存在，避免 detect-provider 输出警告
+        if (typeof window !== 'undefined' && (window as any).ethereum) {
+          const metamaskProvider = await detectEthereumProvider({ timeout: 3000 })
+          if (metamaskProvider) {
+            detectedProvider = metamaskProvider as Eip1193Provider
+            if ((metamaskProvider as any)?.isMetaMask) {
+              detectedType = 'metamask'
+              detectedName = 'MetaMask'
+            } else {
+              detectedType = 'ethereum'
+              detectedName = 'Injected Provider'
+            }
           }
         }
       } catch (error) {
-        // 静默处理检测错误，继续执行
-        console.warn('检测钱包提供方时出错:', error)
+        // 静默处理检测错误（用户可能没有安装MetaMask，这是正常的）
+        // 不输出警告，避免控制台噪音
       }
     }
 

@@ -71,10 +71,12 @@ const routes = [
         component: () => import('@/views/Orders.vue')
       },
 
-      // 错误未检测到钱包 - 完全移除，直接重定向到首页
+      // 错误未检测到钱包
       {
         path: '/error/no-wallet-detected',
-        redirect: '/'
+        name: 'ErrorNoWalletDetected',
+        meta: { errorPage: true },
+        component: () => import('@/views/errors/NoWalletDetected.vue')
       },
 
       // 错误不支持的区块链网络
@@ -114,11 +116,10 @@ const router = createRouter({
 
 // 添加路由守卫，防止访问错误页面
 router.beforeEach((to, from, next) => {
-  // 如果尝试访问 no-wallet-detected 路径，使用 window.location 强制跳转到首页
-  if (to.path === '/error/no-wallet-detected' || to.path.includes('no-wallet-detected')) {
-    console.log('路由守卫: 检测到 no-wallet-detected 路径，强制跳转到首页')
-    // 使用 window.location 强制跳转，确保不加载任何组件
-    window.location.replace(window.location.origin)
+  // 如果尝试访问 NoWalletDetected 错误页面，直接跳转到首页
+  if (to.name === 'ErrorNoWalletDetected') {
+    console.log('路由守卫: 检测到 ErrorNoWalletDetected 路由，跳转到首页')
+    next({ name: 'Home', replace: true })
     return
   }
   next()

@@ -960,9 +960,49 @@ userStore.chatWootReadyFunc = async () => {
 }
 
 // 数据加载
+async function initData() {
+  // 使用 console.error 确保日志能被看到（即使生产环境 terser 移除了 console.log）
+  console.error('[Home] 开始加载数据...')
+  // 等待 WebApi 初始化完成
+  const webApi = WebApi.getInstance()
+  if (!webApi.isReady) {
+    console.error('[Home] 等待 WebApi 初始化...')
+    // 最多等待 5 秒
+    let retries = 50
+    while (!webApi.isReady && retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      retries--
+    }
+    if (!webApi.isReady) {
+      console.error('[Home] WebApi 初始化超时，尝试继续加载')
+    } else {
+      console.error('[Home] WebApi 初始化完成')
+    }
+  }
+  
+  try {
+    await loadCategories()
+    console.error('[Home] 分类加载完成，数量:', productCategories.value.length)
+  } catch (error) {
+    console.error('[Home] 分类加载失败:', error)
+  }
+  
+  try {
+    await loadProducts()
+    console.error('[Home] 商品加载完成，数量:', productList.value.length, '总计:', productTotal.value)
+  } catch (error) {
+    console.error('[Home] 商品加载失败:', error)
+  }
+}
+
 onBeforeMount(async () => {
-  await loadCategories()
-  await loadProducts()
+  await initData()
+  
+  // 监听 app-ready 事件，当用户登录完成后重新加载商品
+  window.addEventListener('app-ready', async (event: any) => {
+    console.log('[Home] 收到 app-ready 事件，重新加载商品')
+    await initData()
+  })
 })
 
 watch([selectedCategoryId, productPage], async () => {
@@ -1012,6 +1052,26 @@ async function loadCategories() {
 async function loadProducts() {
   productLoading.value = true
   try {
+    console.error('[Home] ========== 开始加载商品 ==========')
+    
+    // 检查 WebApi 状态
+    const webApi = WebApi.getInstance()
+    console.error('[Home] WebApi 状态:', {
+      isReady: webApi.isReady,
+      baseUrl: webApi.baseUrl
+    })
+    
+    if (!webApi.isReady) {
+      throw new Error('WebApi 未初始化，请刷新页面重试')
+    }
+    
+    console.error('[Home] 调用商品API，参数:', {
+      page: productPage.value,
+      pageSize: productPageSize.value,
+      categoryId: selectedCategoryId.value,
+      keyword: searchKeyword.value
+    })
+    
     const result = await fetchProductList({
       page: productPage.value,
       pageSize: productPageSize.value,
@@ -1022,21 +1082,64 @@ async function loadProducts() {
       maxPrice: filterMaxPrice.value ?? undefined,
       chainId: filterChainId.value ?? undefined
     })
-    productList.value = result.items
-    productTotal.value = result.totalCount
+    
+    console.error('[Home] API返回结果:', {
+      itemsCount: result?.items?.length ?? 0,
+      totalCount: result?.totalCount ?? 0,
+      hasItems: !!(result?.items && result.items.length > 0)
+    })
+    
+    productList.value = result.items || []
+    productTotal.value = result.totalCount || 0
+    
+    // 如果返回空数据，输出警告
+    if (!result.items || result.items.length === 0) {
+      console.error('[Home] ⚠️ 商品列表为空')
+      console.error('[Home] 完整API返回:', JSON.stringify(result, null, 2))
+      // 即使数据为空，也清空列表，确保显示"No products available"提示
+      productList.value = []
+      productTotal.value = 0
+    } else {
+      console.error('[Home] ✅ 商品加载成功，已设置到 productList，数量:', productList.value.length)
+    }
   } catch (error) {
-    console.warn(error)
-    // 访客模式下不显示网络错误提示
-    const errorMessage = (error as Error).message ?? 'Failed to load products'
+    // 使用 console.error 确保错误能被看到
+    console.error('[Home] ❌ 商品加载失败')
+    console.error('[Home] 错误对象:', error)
+    console.error('[Home] 错误详情:', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      name: (error as Error).name
+    })
+    
+    // 清空列表，确保显示错误提示
+    productList.value = []
+    productTotal.value = 0
+    
+    // 显示错误提示
+    const errorMessage = (error as Error).message ?? '获取商品失败'
     const isNetworkError = errorMessage.includes('无法连接到服务器') || 
                           errorMessage.includes('ERR_CONNECTION_REFUSED') ||
-                          errorMessage.includes('ERR_NETWORK')
+                          errorMessage.includes('ERR_NETWORK') ||
+                          errorMessage.includes('Instance not initialized') ||
+                          errorMessage.includes('WebApi 未初始化')
+    
+    // 访客模式下也显示错误（但网络错误除外，因为可能是后端未启动）
     const isGuestMode = !walletStore.state.provider || !walletStore.state.active
     if (!isGuestMode || !isNetworkError) {
       FastDialog.errorSnackbar(errorMessage)
+    } else {
+      // 访客模式下的网络错误，只输出日志，不显示提示
+      console.error('[Home] 访客模式下网络错误，不显示提示')
     }
   } finally {
     productLoading.value = false
+    console.error('[Home] 商品加载完成，最终状态:', {
+      loading: productLoading.value,
+      count: productList.value.length,
+      total: productTotal.value
+    })
+    console.error('[Home] ========== 商品加载流程结束 ==========')
   }
 }
 
