@@ -258,7 +258,7 @@
       </div>
       <!-- Latest Orders -->
 
-      <!--资产-->
+      <!-- Assets -->
       <v-row v-if="isSigned" dense class="mt-4">
         <v-col cols="6">
           <v-card class="primary-manifesto-bg" variant="flat" height="72px">
@@ -354,7 +354,7 @@
         </template>
         <!-- Token Set -->
       </v-row>
-      <!--资产-->
+      <!-- Assets -->
 
       <!-- Bitget DeepLink Payment -->
       <v-row dense class="mt-4">

@@ -385,7 +385,7 @@ function formatAmount(amount: number): string {
   return Filter.formatToken(amount)
 }
 
-// 订单状态自动刷新（智能轮询）
+// Order status auto-refresh (smart polling)
 let orderRefreshInterval: ReturnType<typeof setInterval> | null = null
 const orderRefreshEnabled = ref(true)
 
@@ -394,10 +394,10 @@ function startOrderAutoRefresh() {
     return
   }
 
-  // 每 30 秒自动刷新一次订单列表（只刷新待支付订单）
+  // Auto-refresh order list every 30 seconds (only refresh pending payment orders)
   orderRefreshInterval = setInterval(async () => {
     if (orderRefreshEnabled.value && userUid.value) {
-      // 只刷新待支付状态的订单
+      // Only refresh orders with pending payment status
       const hasPendingOrders = orderList.value.some(
         o => o.status === StoreOrderStatus.PendingPayment
       )
