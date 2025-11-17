@@ -1,0 +1,108 @@
+name: Backend Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/Backend/**'
+      - '.github/workflows/backend-deploy.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/Backend/**'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'src/Backend/UnifiedPlatform.WebApi'
+  SOLUTION_PATH: 'src/Backend/UnifiedPlatform.sln'
+
+jobs:
+  build:
+    name: Build Backend
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: Run tests (if any)
+        run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-build --verbosity normal
+        continue-on-error: true
+
+      - name: Publish backend
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }}/UnifiedPlatform.WebApi.csproj `
+            --configuration Release `
+            --output ./publish/backend `
+            --no-build
+
+      - name: Create deployment package
+        run: |
+          Compress-Archive -Path ./publish/backend/* -DestinationPath ./publish/backend-deploy.zip -Force
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: |
+            ./publish/backend-deploy.zip
+            ./publish/backend
+          retention-days: 7
+
+      - name: Create Release (on main branch)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: backend-v${{ github.run_number }}
+          name: Backend Release v${{ github.run_number }}
+          body: |
+            ## Backend Build and Deployment Package
+            
+            **Build Number:** ${{ github.run_number }}
+            **Commit:** ${{ github.sha }}
+            **Branch:** ${{ github.ref_name }}
+            **Triggered by:** ${{ github.actor }}
+            
+            ### Changes
+            - Automated build from GitHub Actions
+            - Ready for deployment
+            
+            ### Download
+            Download the `backend-build` artifact to deploy.
+          files: ./publish/backend-deploy.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: windows-latest
+    needs: build
+    if: always()
+    
+    steps:
+      - name: Deployment Status
+        run: |
+          if ("${{ needs.build.result }}" -eq "success") {
+            Write-Host "✅ Backend build completed successfully"
+            Write-Host "📦 Artifacts are available for download"
+          } else {
+            Write-Host "❌ Backend build failed"
+            exit 1
+          }
+
