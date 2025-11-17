@@ -95,6 +95,18 @@
             >
               Add to Cart
             </v-btn>
+            <v-btn
+              color="success"
+              size="large"
+              block
+              class="mt-2"
+              append-icon="mdi-credit-card"
+              :loading="buyingNow"
+              :disabled="product.inventoryAvailable <= 0"
+              @click="handleBuyNow"
+            >
+              Buy Now
+            </v-btn>
           </v-card-actions>
         </v-card>
 
@@ -138,6 +150,71 @@
           </v-card-text>
         </v-card>
       </template>
+
+      <!-- 订单支付对话框 -->
+      <OrderPaymentDialog
+        v-model="orderPaymentDialog"
+        :order="orderPaymentDetail"
+        @payment-success="handlePaymentSuccess"
+      />
+
+      <!-- 订单成功对话框 -->
+      <v-dialog v-model="orderSuccessDialog" max-width="600px" persistent>
+        <v-card>
+          <v-card-title class="d-flex align-center">
+            <v-icon class="mr-2" color="success">mdi-check-circle</v-icon>
+            Order Created Successfully
+            <v-spacer></v-spacer>
+            <v-btn icon="mdi-close" variant="text" @click="closeOrderSuccessDialog"></v-btn>
+          </v-card-title>
+          <v-divider></v-divider>
+          <v-card-text v-if="orderSuccessDetail">
+            <div class="text-body-2 mb-2">
+              <strong>Order Number:</strong> {{ orderSuccessDetail.orderNumber }}
+            </div>
+            <div class="text-body-2 mb-2">
+              <strong>Total Amount:</strong> 
+              <span class="text-primary font-weight-medium">
+                {{ Filter.formatToken(orderSuccessDetail.totalAmount) }} {{ orderSuccessDetail.currency }}
+              </span>
+            </div>
+            <div class="text-body-2 mb-2">
+              <strong>Payment Method:</strong> 
+              {{ orderSuccessDetail.paymentProviderName ?? orderSuccessDetail.paymentMethod ?? 'PayFi' }}
+            </div>
+            <div class="text-body-2 mb-2">
+              <strong>Payment Status:</strong> 
+              <v-chip size="small" :color="getPaymentStatusColor(orderSuccessDetail.paymentStatus)" variant="tonal">
+                {{ getPaymentStatusText(orderSuccessDetail.paymentStatus) }}
+              </v-chip>
+            </div>
+            <div class="text-body-2 mb-2">
+              <strong>Order Status:</strong> 
+              <v-chip size="small" :color="getOrderStatusColor(orderSuccessDetail.status)" variant="tonal">
+                {{ getOrderStatusText(orderSuccessDetail.status) }}
+              </v-chip>
+            </div>
+            <v-divider class="my-3"></v-divider>
+            <div class="text-body-2 font-weight-medium mb-2">Product Information</div>
+            <v-list density="compact">
+              <v-list-item v-for="item in orderSuccessDetail.items" :key="item.orderItemId">
+                <v-list-item-title>{{ item.productName }}</v-list-item-title>
+                <v-list-item-subtitle>
+                  {{ item.quantity }} pcs × {{ Filter.formatToken(item.unitPrice) }} {{ orderSuccessDetail.currency }}
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+            <div class="text-caption text-grey-lighten-1 mt-3">
+              Please refresh the page after payment to view the latest status.
+            </div>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" variant="tonal" @click="closeOrderSuccessDialog">Continue Shopping</v-btn>
+            <v-btn color="primary" @click="goToOrders">View Orders</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-responsive>
   </v-container>
 </template>
@@ -152,8 +229,15 @@ import productPlaceholderImage from '@/assets/online_transactions.svg?url'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
 import { useWalletStore } from '@/store/wallet'
+import OrderPaymentDialog from '@/components/OrderPaymentDialog.vue'
 import { fetchProductDetail } from '@/services/storeApi'
-import type { StoreProductDetailResult } from '@/types'
+import type { 
+  StoreProductDetailResult,
+  StoreOrderDetailResult,
+  StoreOrderStatus,
+  StorePaymentMode,
+  StorePaymentStatus
+} from '@/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -164,6 +248,11 @@ const walletStore = useWalletStore()
 const loading = ref(true)
 const product = ref<StoreProductDetailResult | null>(null)
 const cartProcessing = computed(() => cartStore.processing)
+const buyingNow = ref(false)
+const orderPaymentDialog = ref(false)
+const orderPaymentDetail = ref<StoreOrderDetailResult | null>(null)
+const orderSuccessDialog = ref(false)
+const orderSuccessDetail = ref<StoreOrderDetailResult | null>(null)
 
 const userUid = computed(() => userStore.state.userInfo?.uid ?? null)
 
@@ -329,6 +418,144 @@ async function handleLoginForAddToCart(): Promise<boolean> {
     }
     return false
   }
+}
+
+async function handleBuyNow() {
+  if (!product.value) {
+    return
+  }
+
+  if (product.value.inventoryAvailable <= 0) {
+    FastDialog.warningSnackbar('Product is out of stock.')
+    return
+  }
+
+  const uid = userUid.value
+  if (!uid) {
+    // 未登录，引导用户登录
+    const loginSuccess = await handleLoginForAddToCart()
+    if (!loginSuccess) {
+      return
+    }
+    // 登录成功后，重新获取 uid 并继续购买流程
+    const newUid = userUid.value
+    if (newUid && product.value) {
+      await proceedBuyNow(newUid)
+    }
+    return
+  }
+
+  await proceedBuyNow(uid)
+}
+
+async function proceedBuyNow(uid: number) {
+  if (!product.value) {
+    return
+  }
+
+  buyingNow.value = true
+  try {
+    // 1. 先将商品添加到购物车
+    await cartStore.addItem(uid, product.value.productId, 1)
+    
+    // 2. 立即创建订单
+    const walletState = walletStore.state
+    const isWeb3Payment = walletState.active && walletState.provider !== null
+    
+    const order = await cartStore.placeOrder({
+      uid,
+      paymentMode: isWeb3Payment ? StorePaymentMode.Web3 : StorePaymentMode.Traditional,
+      paymentMethod: walletState.providerName ?? walletState.providerType ?? undefined,
+      paymentProviderType: walletState.providerType ?? undefined,
+      paymentProviderName: walletState.providerName ?? undefined,
+      paymentWalletAddress: walletState.address ?? undefined,
+      paymentWalletLabel: walletState.address ? formatWalletAddress(walletState.address) : undefined,
+      chainId: walletState.chainId > 0 ? walletState.chainId : undefined,
+      remark: 'Buy Now'
+    })
+    
+    // 3. 如果是 Web3 支付且需要签名，打开支付对话框
+    if (isWeb3Payment && order.paymentStatus === StorePaymentStatus.PendingSignature) {
+      orderPaymentDetail.value = order
+      orderPaymentDialog.value = true
+    } else {
+      // 传统支付或已完成的支付，显示成功对话框
+      orderSuccessDetail.value = order
+      orderSuccessDialog.value = true
+      FastDialog.successSnackbar('Order created successfully')
+    }
+  } catch (error) {
+    console.error('Buy now error:', error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to create order')
+  } finally {
+    buyingNow.value = false
+  }
+}
+
+function handlePaymentSuccess(order: StoreOrderDetailResult) {
+  orderPaymentDialog.value = false
+  orderSuccessDetail.value = order
+  orderSuccessDialog.value = true
+}
+
+function closeOrderSuccessDialog() {
+  orderSuccessDialog.value = false
+  orderSuccessDetail.value = null
+}
+
+function goToOrders() {
+  router.push({ name: 'Orders' })
+}
+
+function formatWalletAddress(address: string): string {
+  if (!address || address.length < 10) return address
+  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`
+}
+
+function getOrderStatusColor(status: StoreOrderStatus): string {
+  const statusMap: Record<StoreOrderStatus, string> = {
+    [StoreOrderStatus.PendingPayment]: 'warning',
+    [StoreOrderStatus.Paid]: 'primary',
+    [StoreOrderStatus.Shipped]: 'info',
+    [StoreOrderStatus.Delivered]: 'success',
+    [StoreOrderStatus.Cancelled]: 'error',
+    [StoreOrderStatus.Refunded]: 'grey'
+  }
+  return statusMap[status] ?? 'grey'
+}
+
+function getOrderStatusText(status: StoreOrderStatus): string {
+  const statusMap: Record<StoreOrderStatus, string> = {
+    [StoreOrderStatus.PendingPayment]: 'Pending Payment',
+    [StoreOrderStatus.Paid]: 'Paid',
+    [StoreOrderStatus.Shipped]: 'Shipped',
+    [StoreOrderStatus.Delivered]: 'Delivered',
+    [StoreOrderStatus.Cancelled]: 'Cancelled',
+    [StoreOrderStatus.Refunded]: 'Refunded'
+  }
+  return statusMap[status] ?? 'Unknown'
+}
+
+function getPaymentStatusColor(status: StorePaymentStatus): string {
+  const statusMap: Record<StorePaymentStatus, string> = {
+    [StorePaymentStatus.PendingSignature]: 'warning',
+    [StorePaymentStatus.AwaitingOnChainConfirmation]: 'info',
+    [StorePaymentStatus.Confirmed]: 'success',
+    [StorePaymentStatus.Failed]: 'error',
+    [StorePaymentStatus.Cancelled]: 'grey'
+  }
+  return statusMap[status] ?? 'grey'
+}
+
+function getPaymentStatusText(status: StorePaymentStatus): string {
+  const statusMap: Record<StorePaymentStatus, string> = {
+    [StorePaymentStatus.PendingSignature]: 'Pending Signature',
+    [StorePaymentStatus.AwaitingOnChainConfirmation]: 'Awaiting Confirmation',
+    [StorePaymentStatus.Confirmed]: 'Confirmed',
+    [StorePaymentStatus.Failed]: 'Failed',
+    [StorePaymentStatus.Cancelled]: 'Cancelled'
+  }
+  return statusMap[status] ?? 'Unknown'
 }
 
 onBeforeMount(async () => {

@@ -155,6 +155,8 @@
                   height="160"
                   cover
                   class="product-image"
+                  style="cursor: pointer;"
+                  @click="viewProductDetail(product.productId)"
                 >
                   <template v-slot:placeholder>
                     <div class="d-flex align-center justify-center fill-height bg-grey-darken-3">
