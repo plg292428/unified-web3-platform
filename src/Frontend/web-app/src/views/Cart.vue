@@ -499,9 +499,16 @@ function getOrderStatusMeta(status: StoreOrderStatus) {
 async function handleLogin() {
   loggingIn.value = true
   try {
+    // First, try to initialize wallet if not already initialized
+    if (!walletStore.state.initialized) {
+      await walletStore.initialize()
+    }
+
     // Check if wallet provider exists
     if (!walletStore.state.provider) {
-      FastDialog.warningSnackbar('Please connect your wallet first. If you don\'t have a wallet, please install MetaMask or Bitget Wallet.')
+      FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
+      // Redirect to wallet setup page
+      router.push({ name: 'Go' })
       return
     }
 
@@ -511,12 +518,19 @@ async function handleLogin() {
         FastDialog.infoSnackbar('Connecting wallet...')
         const accounts = await walletStore.connect()
         if (!accounts || accounts.length === 0) {
-          FastDialog.errorSnackbar('Failed to connect wallet. Please try again.')
+          FastDialog.errorSnackbar('Failed to connect wallet. Please unlock your wallet and try again.')
           return
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Wallet connection error:', error)
-        FastDialog.errorSnackbar('Failed to connect wallet. Please check your wallet and try again.')
+        // Handle specific error codes
+        if (error.code === 4001) {
+          FastDialog.warningSnackbar('Connection cancelled. Please approve the connection request to continue.')
+        } else if (error.code === -32002) {
+          FastDialog.warningSnackbar('Connection request already pending. Please check your wallet.')
+        } else {
+          FastDialog.errorSnackbar('Failed to connect wallet. Please check your wallet and try again.')
+        }
         return
       }
     }
