@@ -279,7 +279,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onBeforeMount, ref, computed } from 'vue'
+import { onBeforeMount, ref, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import Filter from '@/libs/Filter'
 import FastDialog from '@/libs/FastDialog'
@@ -507,8 +507,18 @@ async function handleLogin() {
     // Check if wallet provider exists
     if (!walletStore.state.provider) {
       FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
+      // Use nextTick to ensure the dialog is shown before navigation
+      await nextTick()
+      // Small delay to ensure user sees the message
+      await new Promise(resolve => setTimeout(resolve, 500))
       // Redirect to wallet setup page
-      router.push({ name: 'Go' })
+      try {
+        await router.push({ name: 'Go' })
+      } catch (err) {
+        console.error('Navigation error:', err)
+        // Fallback: use window.location if router.push fails
+        window.location.href = '/go'
+      }
       return
     }
 
@@ -596,6 +606,11 @@ async function handleLogin() {
 }
 
 onBeforeMount(async () => {
+  // Initialize wallet if not already initialized
+  if (!walletStore.state.initialized) {
+    await walletStore.initialize()
+  }
+
   const uid = userUid.value
   if (uid) {
     try {
