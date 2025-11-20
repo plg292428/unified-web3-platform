@@ -47,7 +47,7 @@
 import { useServerConfigsStore } from '@/store/severConfigs'
 import { useUserStore } from '@/store/user'
 import { useWalletStore } from '@/store/wallet'
-import { ref } from 'vue'
+import { ref, onBeforeMount } from 'vue'
 import { useRouter } from 'vue-router'
 import { ethers } from "ethers";
 import FastDialog from '@/libs/FastDialog'
@@ -74,17 +74,158 @@ function getWalletIcon(name: string) {
 async function getStarted() {
   buttonLoading.value = true
 
-  // Check login
-  const userStore = useUserStore()
-  const checkSignedResult = await userStore.checkSigned()
+  try {
+    // Initialize wallet if not already initialized
+    if (!walletStore.state.initialized) {
+      await walletStore.initialize()
+    }
 
-  if (!checkSignedResult.succeed) {
-    FastDialog.errorSnackbar(checkSignedResult.errorMessage as string)
+    // Check if wallet provider exists
+    if (!walletStore.state.provider) {
+      FastDialog.warningSnackbar('No wallet detected. Please install MetaMask or Bitget Wallet to continue.')
+      buttonLoading.value = false
+      
+      // Open wallet download page in new tab
+      setTimeout(() => {
+        const installChoice = window.confirm(
+          'No wallet detected. Would you like to:\n\n' +
+          'OK - Install MetaMask\n' +
+          'Cancel - Install Bitget Wallet'
+        )
+        
+        if (installChoice) {
+          window.open('https://metamask.io/download/', '_blank', 'noopener')
+        } else {
+          window.open('https://web3.bitget.com/en/tools/wallet', '_blank', 'noopener')
+        }
+      }, 500)
+      return
+    }
+
+    // Check if wallet is connected
+    if (!walletStore.state.active || !walletStore.state.address) {
+      try {
+        FastDialog.infoSnackbar('Connecting wallet...')
+        const accounts = await walletStore.connect()
+        if (!accounts || accounts.length === 0) {
+          FastDialog.errorSnackbar('Failed to connect wallet. Please unlock your wallet and try again.')
+          buttonLoading.value = false
+          return
+        }
+      } catch (error: any) {
+        console.error('Wallet connection error:', error)
+        buttonLoading.value = false
+        if (error.code === 4001) {
+          FastDialog.warningSnackbar('Connection cancelled. Please approve the connection request to continue.')
+        } else if (error.code === -32002) {
+          FastDialog.warningSnackbar('Connection request already pending. Please check your wallet.')
+        } else {
+          FastDialog.errorSnackbar('Failed to connect wallet. Please check your wallet and try again.')
+        }
+        return
+      }
+    }
+
+    // Check login
+    const userStore = useUserStore()
+    const checkSignedResult = await userStore.checkSigned()
+
+    if (!checkSignedResult.succeed) {
+      FastDialog.errorSnackbar(checkSignedResult.errorMessage as string)
+      buttonLoading.value = false
+      return
+    }
+
+    if (checkSignedResult.data?.singined) {
+      // Already logged in, check if there is pending product purchase operation
+      const pendingProductId = localStorage.getItem('pendingProductId')
+      const pendingAction = localStorage.getItem('pendingAction')
+      
+      if (pendingProductId && pendingAction === 'buyNow') {
+        // Clear pending operation markers
+        localStorage.removeItem('pendingProductId')
+        localStorage.removeItem('pendingAction')
+        
+        // Navigate to product detail page and trigger purchase operation
+        router.push({ 
+          name: 'ProductDetail', 
+          params: { productId: pendingProductId },
+          query: { autoBuy: 'true' }
+        })
+      } else {
+        // Check if there are temporary cart items to transfer
+        const { getTemporaryCartItems } = await import('@/utils/temporaryCart')
+        const tempItems = getTemporaryCartItems()
+        if (tempItems.length > 0) {
+          // Redirect to cart to transfer temporary cart items
+          router.push({ name: 'Cart' })
+        } else {
+          router.push({ name: 'Home' })
+        }
+      }
+      buttonLoading.value = false
+      return
+    }
+
+    // Sign message for login
+    const from = walletStore.state.address
+    const provider = walletStore.state.provider
+    if (!from || !provider) {
+      FastDialog.errorSnackbar('Wallet not connected. Please connect your wallet first.')
+      buttonLoading.value = false
+      return
+    }
+
+    const message = `0x${checkSignedResult.data.tokenText}`
+    
+    try {
+      FastDialog.infoSnackbar('Please sign the message in your wallet to login...')
+      const signedText = await provider.request({
+        method: 'personal_sign',
+        params: [message, from]
+      })
+      await signIn(signedText)
+    } catch (error: any) {
+      console.error('Sign error:', error)
+      buttonLoading.value = false
+      if (error.code === 4001) {
+        FastDialog.warningSnackbar('Signing cancelled. Please sign the message to continue.')
+      } else {
+        FastDialog.errorSnackbar('Sign in failed, signature verification not completed.')
+      }
+    }
+  } catch (error) {
+    console.error('Get started error:', error)
+    FastDialog.errorSnackbar('An error occurred. Please try again.')
     buttonLoading.value = false
-    return
   }
+}
 
-  if (checkSignedResult.data?.singined) {
+// Sign in
+async function signIn(signedText: string) {
+  try {
+    const userStore = useUserStore()
+    const signResult = await userStore.signIn(signedText)
+    if (!signResult.succeed) {
+      FastDialog.errorSnackbar(signResult.errorMessage as string)
+      buttonLoading.value = false
+      return
+    }
+
+    // Get user info once
+    if (!(await userStore.updateUserInfo())) {
+      userStore.signOut()
+      router.push({ name: 'Error500' })
+      buttonLoading.value = false
+      return
+    }
+
+    buttonLoading.value = false
+    
+    // Check if there are temporary cart items to transfer
+    const { getTemporaryCartItems } = await import('@/utils/temporaryCart')
+    const tempItems = getTemporaryCartItems()
+    
     // Check if there is pending product purchase operation
     const pendingProductId = localStorage.getItem('pendingProductId')
     const pendingAction = localStorage.getItem('pendingAction')
@@ -100,67 +241,25 @@ async function getStarted() {
         params: { productId: pendingProductId },
         query: { autoBuy: 'true' }
       })
+    } else if (tempItems.length > 0) {
+      // Redirect to cart to transfer temporary cart items
+      FastDialog.successSnackbar('Login successful! Redirecting to cart...')
+      router.push({ name: 'Cart' })
     } else {
+      FastDialog.successSnackbar('Login successful!')
       router.push({ name: 'Home' })
     }
-    return
-  }
-
-  // Sign
-  const from = walletStore.state.address
-  const provider = walletStore.state.provider
-  const message = `0x${checkSignedResult.data.tokenText}`;
-  provider
-    .request({
-      method: 'personal_sign',
-      params: [message, from]
-    })
-    .then((signedText: string) => {
-      signIn(signedText)
-    })
-    .catch(() => {
-      FastDialog.errorSnackbar('Sign in failed, signature verification not completed.')
-      buttonLoading.value = false
-      return
-    })
-}
-
-// Sign in
-async function signIn(signedText: string) {
-  const userStore = useUserStore()
-  const signResult = await userStore.signIn(signedText)
-  if (!signResult.succeed) {
-    FastDialog.errorSnackbar(signResult.errorMessage as string)
+  } catch (error) {
+    console.error('Sign in error:', error)
+    FastDialog.errorSnackbar('An error occurred during sign in. Please try again.')
     buttonLoading.value = false
-    return
-  }
-
-  // Get user info once
-  if (!(await userStore.updateUserInfo())) {
-    userStore.signOut()
-    router.push({ name: 'Error500' })
-    return
-  }
-
-  buttonLoading.value = false
-  
-  // 检查是否有待处理的产品购买操作
-  const pendingProductId = localStorage.getItem('pendingProductId')
-  const pendingAction = localStorage.getItem('pendingAction')
-  
-  if (pendingProductId && pendingAction === 'buyNow') {
-    // 清除待处理操作标记
-    localStorage.removeItem('pendingProductId')
-    localStorage.removeItem('pendingAction')
-    
-    // 跳转到产品详情页，并触发购买操作
-    router.push({ 
-      name: 'ProductDetail', 
-      params: { productId: pendingProductId },
-      query: { autoBuy: 'true' }
-    })
-  } else {
-    router.push({ name: 'Home' })
   }
 }
+
+// Initialize wallet when page loads
+onBeforeMount(async () => {
+  if (!walletStore.state.initialized) {
+    await walletStore.initialize()
+  }
+})
 </script>
