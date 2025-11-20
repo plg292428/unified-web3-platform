@@ -46,4 +46,25 @@ export default class Filter {
   public static formatShotDateTime(value: Date) {
    return value.toShortTime();
   }
+
+  /**
+   * Format price without trailing zeros
+   * Example: 45.000000 -> 45, 15.000000 -> 15, 6.800000 -> 6.8
+   */
+  public static formatPrice(value: number | bigint | string): string {
+    if (value === null || value === undefined) {
+      return '0'
+    }
+    
+    // Convert to number
+    const numValue = typeof value === 'string' ? parseFloat(value) : Number(value)
+    
+    if (isNaN(numValue)) {
+      return '0'
+    }
+    
+    // Remove trailing zeros using parseFloat and toString
+    // This will automatically remove trailing zeros
+    return parseFloat(numValue.toString()).toString()
+  }
 }

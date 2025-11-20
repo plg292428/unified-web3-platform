@@ -180,7 +180,7 @@
                 <v-card-actions class="justify-space-between">
                   <div @click.stop>
                     <div class="text-subtitle-1 text-primary font-weight-medium">
-                      {{ Filter.formatToken(product.price) }} {{ product.currency }}
+                      {{ Filter.formatPrice(product.price) }} {{ product.currency }}
                     </div>
                     <div class="text-caption text-grey-lighten-1">Updated {{ formatDateTime(product.updateTime) }}</div>
                   </div>

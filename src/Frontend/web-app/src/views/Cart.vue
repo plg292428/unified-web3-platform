@@ -128,11 +128,11 @@
                 <template #subtitle>
                   <div class="d-flex align-center mt-1">
                     <span class="text-caption text-grey-lighten-1">
-                      Unit Price: {{ Filter.formatToken(item.unitPrice) }} {{ item.currency }}
+                      Unit Price: {{ Filter.formatPrice(item.unitPrice) }} {{ item.currency }}
                     </span>
                     <v-spacer></v-spacer>
                     <span class="text-body-2 text-primary font-weight-medium">
-                      Subtotal: {{ Filter.formatToken(item.subtotal) }} {{ item.currency }}
+                      Subtotal: {{ Filter.formatPrice(item.subtotal) }} {{ item.currency }}
                     </span>
                   </div>
                 </template>
@@ -197,7 +197,7 @@
                 <v-list-item-title class="text-body-2">Total Amount</v-list-item-title>
                 <v-list-item-subtitle class="text-right">
                   <span class="text-h6 text-primary font-weight-medium">
-                    {{ Filter.formatToken(cartTotalAmount) }} {{ cartCurrency }}
+                    {{ Filter.formatPrice(cartTotalAmount) }} {{ cartCurrency }}
                   </span>
                 </v-list-item-subtitle>
               </v-list-item>
@@ -248,7 +248,7 @@
           <v-card-text v-if="orderSuccessDetail">
             <div class="text-body-2">Order Number: {{ orderSuccessDetail.orderNumber }}</div>
             <div class="text-body-2 mt-2">
-              Amount: {{ Filter.formatToken(orderSuccessDetail.totalAmount) }} {{ orderSuccessDetail.currency }}
+              Amount: {{ Filter.formatPrice(orderSuccessDetail.totalAmount) }} {{ orderSuccessDetail.currency }}
             </div>
             <div class="text-body-2 mt-2">
               Payment Method: {{ orderSuccessDetail.paymentMethod ?? 'PayFi' }}
@@ -262,7 +262,7 @@
               <v-list-item v-for="item in orderSuccessDetail.items" :key="item.orderItemId">
                 <v-list-item-title>{{ item.productName }}</v-list-item-title>
                 <v-list-item-subtitle>
-                  {{ item.quantity }} pcs · {{ Filter.formatToken(item.unitPrice) }} {{ orderSuccessDetail.currency }}
+                  {{ item.quantity }} pcs · {{ Filter.formatPrice(item.unitPrice) }} {{ orderSuccessDetail.currency }}
                 </v-list-item-subtitle>
               </v-list-item>
             </v-list>

@@ -382,7 +382,7 @@ function formatDateTime(date: Date | string): string {
 }
 
 function formatAmount(amount: number): string {
-  return Filter.formatToken(amount)
+  return Filter.formatPrice(amount)
 }
 
 // Order status auto-refresh (smart polling)

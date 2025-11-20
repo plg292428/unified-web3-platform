@@ -241,7 +241,7 @@ function formatDateTime(value?: string | null) {
 }
 
 function formatAmount(amount: number | string) {
-  return Filter.formatToken(amount)
+  return Filter.formatPrice(amount)
 }
 
 function getOrderStatusColor(status: StoreOrderStatus | number) {

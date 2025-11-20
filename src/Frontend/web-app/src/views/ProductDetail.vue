@@ -44,7 +44,7 @@
             <!-- Price -->
             <div class="d-flex align-center mb-4">
               <span class="text-h5 text-primary font-weight-medium">
-                {{ Filter.formatToken(product.price) }} {{ product.currency }}
+                {{ Filter.formatPrice(product.price) }} {{ product.currency }}
               </span>
               <v-chip v-if="product.inventoryAvailable > 0" class="ml-2" size="small" color="success" variant="tonal">
                 In Stock
