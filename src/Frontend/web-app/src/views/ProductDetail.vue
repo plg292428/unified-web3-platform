@@ -317,22 +317,11 @@ async function handleAddToCart() {
 
   const uid = userUid.value
   if (!uid) {
-    // Not logged in, guide user to login
-    const loginSuccess = await handleLoginForAddToCart()
-    if (!loginSuccess) {
-      return
-    }
-    // After successful login, get uid again and add to cart
-    const newUid = userUid.value
-    if (newUid && product.value) {
-      try {
-        await cartStore.addItem(newUid, product.value.productId, 1)
-        FastDialog.successSnackbar('Added to cart')
-      } catch (error) {
-        console.warn(error)
-        FastDialog.errorSnackbar((error as Error).message ?? 'Failed to add to cart')
-      }
-    }
+    // Not logged in, add to temporary cart
+    const { addToTemporaryCart, getTemporaryCartTotalQuantity } = await import('@/utils/temporaryCart')
+    addToTemporaryCart(product.value.productId, 1)
+    const totalQuantity = getTemporaryCartTotalQuantity()
+    FastDialog.successSnackbar(`Added to cart (${totalQuantity} items). Connect wallet to checkout.`)
     return
   }
 

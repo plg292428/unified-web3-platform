@@ -20,32 +20,183 @@
 
       <!-- Not Logged In -->
       <template v-if="!userUid">
-        <v-card class="primary-border mt-4" variant="outlined">
-          <v-card-text class="text-center py-8">
-            <v-icon size="64" color="primary" class="mb-4">mdi-wallet</v-icon>
-            <div class="text-h6 mt-4 text-grey-lighten-1">Ready to Pay with Web3</div>
-            <div class="text-body-2 text-grey-lighten-2 mt-2">
-              Connect your wallet to proceed with payment. Your account will be created automatically.
-            </div>
-            <v-btn 
-              color="primary" 
-              class="mt-4" 
-              @click="handlePlaceOrder" 
-              :loading="placingOrder"
-              :disabled="!walletStore.state.provider"
-            >
-              <v-icon start>mdi-wallet</v-icon>
-              Connect Wallet & Pay
-            </v-btn>
-            <div v-if="!walletStore.state.initialized || !walletStore.state.provider" class="text-caption text-grey-lighten-1 mt-2">
-              No wallet detected. Please install a wallet first.
-            </div>
-            <v-btn color="primary" variant="tonal" class="mt-2" @click="goToHome">
-              <v-icon start>mdi-shopping</v-icon>
-              Continue Shopping
-            </v-btn>
-          </v-card-text>
-        </v-card>
+        <!-- Loading Temporary Cart -->
+        <template v-if="temporaryCartLoading">
+          <v-card class="primary-border mt-4" variant="outlined">
+            <v-card-text>
+              <v-skeleton-loader type="list-item-three-line@3"></v-skeleton-loader>
+            </v-card-text>
+          </v-card>
+        </template>
+
+        <!-- Empty Temporary Cart -->
+        <template v-else-if="cartItems.length === 0">
+          <v-card class="primary-border mt-4" variant="outlined">
+            <v-card-text class="text-center py-8">
+              <v-icon size="64" color="primary" class="mb-4">mdi-wallet</v-icon>
+              <div class="text-h6 mt-4 text-grey-lighten-1">Ready to Pay with Web3</div>
+              <div class="text-body-2 text-grey-lighten-2 mt-2">
+                Your cart is empty. Add items to your cart and connect your wallet to proceed with payment.
+              </div>
+              <v-btn color="primary" variant="tonal" class="mt-4" @click="goToHome">
+                <v-icon start>mdi-shopping</v-icon>
+                Go Shopping
+              </v-btn>
+            </v-card-text>
+          </v-card>
+        </template>
+
+        <!-- Temporary Cart with Items -->
+        <template v-else>
+          <v-card class="primary-border mt-4" variant="outlined">
+            <v-card-title class="d-flex align-center">
+              <span class="text-subtitle-1">Temporary Cart</span>
+              <v-spacer></v-spacer>
+              <v-chip size="small" color="info" variant="tonal">
+                Connect wallet to checkout
+              </v-chip>
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+              <v-alert type="info" variant="tonal" class="mb-4">
+                <div class="text-caption">
+                  Items are saved in your browser. Connect your wallet to create an account and proceed with payment.
+                </div>
+              </v-alert>
+              <v-list density="comfortable">
+                <v-list-item
+                  v-for="item in cartItems"
+                  :key="item.cartItemId"
+                  :value="item.cartItemId"
+                >
+                  <template #prepend>
+                    <v-avatar size="64" rounded="lg" class="mr-4">
+                      <v-img
+                        :src="resolveProductImage(item)"
+                        cover
+                        class="bg-grey-darken-3"
+                      >
+                        <template v-slot:placeholder>
+                          <div class="d-flex align-center justify-center fill-height">
+                            <v-icon color="grey">mdi-image</v-icon>
+                          </div>
+                        </template>
+                      </v-img>
+                    </v-avatar>
+                  </template>
+                  <template #title>
+                    <div class="d-flex align-center">
+                      <span class="font-weight-medium">{{ item.productName }}</span>
+                    </div>
+                  </template>
+                  <template #subtitle>
+                    <div class="d-flex align-center mt-1">
+                      <span class="text-caption text-grey-lighten-1">
+                        Unit Price: {{ Filter.formatPrice(item.unitPrice) }} {{ item.currency }}
+                      </span>
+                      <v-spacer></v-spacer>
+                      <span class="text-body-2 text-primary font-weight-medium">
+                        Subtotal: {{ Filter.formatPrice(item.subtotal) }} {{ item.currency }}
+                      </span>
+                    </div>
+                  </template>
+                  <template #append>
+                    <div class="d-flex align-center">
+                      <v-btn
+                        icon="mdi-minus"
+                        variant="text"
+                        size="small"
+                        :disabled="temporaryCartLoading"
+                        @click="handleUpdateQuantity(item, item.quantity - 1)"
+                      ></v-btn>
+                      <v-text-field
+                        class="mx-2"
+                        style="max-width: 80px"
+                        type="number"
+                        density="compact"
+                        variant="outlined"
+                        hide-details
+                        :model-value="item.quantity"
+                        :disabled="temporaryCartLoading"
+                        :min="1"
+                        @update:model-value="(value: number) => handleQuantityInput(item, value)"
+                      />
+                      <v-btn
+                        icon="mdi-plus"
+                        variant="text"
+                        size="small"
+                        :disabled="temporaryCartLoading"
+                        @click="handleUpdateQuantity(item, item.quantity + 1)"
+                      ></v-btn>
+                      <v-btn
+                        icon="mdi-delete"
+                        color="error"
+                        variant="text"
+                        size="small"
+                        class="ml-2"
+                        :disabled="temporaryCartLoading"
+                        @click="handleRemoveItem(item)"
+                      ></v-btn>
+                    </div>
+                  </template>
+                </v-list-item>
+              </v-list>
+            </v-card-text>
+          </v-card>
+
+          <!-- Order Summary for Temporary Cart -->
+          <v-card class="primary-border mt-4" variant="outlined">
+            <v-card-title class="text-subtitle-1">Order Summary</v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+              <v-list density="compact">
+                <v-list-item>
+                  <v-list-item-title class="text-body-2">Total Items</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">
+                    {{ cartTotalQuantity }} {{ cartTotalQuantity === 1 ? 'item' : 'items' }}
+                  </v-list-item-subtitle>
+                </v-list-item>
+                <v-list-item>
+                  <v-list-item-title class="text-body-2">Total Amount</v-list-item-title>
+                  <v-list-item-subtitle class="text-right">
+                    <span class="text-h6 text-primary font-weight-medium">
+                      {{ Filter.formatPrice(cartTotalAmount) }} {{ cartCurrency }}
+                    </span>
+                  </v-list-item-subtitle>
+                </v-list-item>
+              </v-list>
+            </v-card-text>
+            <v-divider></v-divider>
+            
+            <!-- Payment Method Selection -->
+            <v-card-text class="pt-4">
+              <PaymentMethodSelector
+                v-model="selectedPaymentMode"
+                :disabled="placingOrder || temporaryCartLoading"
+              />
+            </v-card-text>
+            
+            <v-card-actions class="pa-4">
+              <v-btn
+                color="primary"
+                size="large"
+                block
+                :loading="placingOrder"
+                :disabled="cartTotalQuantity === 0 || !walletStore.state.provider"
+                append-icon="mdi-arrow-right"
+                @click="handlePlaceOrder"
+              >
+                <v-icon start>mdi-wallet</v-icon>
+                Connect Wallet & Pay
+              </v-btn>
+            </v-card-actions>
+            <v-card-text v-if="!walletStore.state.provider" class="text-center">
+              <v-chip size="small" color="warning" variant="tonal">
+                No wallet detected. Please install a wallet first.
+              </v-chip>
+            </v-card-text>
+          </v-card>
+        </template>
       </template>
 
       <!-- Loading -->
@@ -329,9 +480,75 @@ const initialPaymentMode = computed(() => {
 const selectedPaymentMode = ref<StorePaymentMode>(initialPaymentMode.value)
 
 const userUid = computed(() => userStore.state.userInfo?.uid ?? null)
-const cartItems = computed(() => cartStore.items)
-const cartTotalAmount = computed(() => cartStore.totalAmount)
-const cartTotalQuantity = computed(() => cartStore.totalQuantity)
+
+// Temporary cart for unauthenticated users
+const temporaryCartItems = ref<Array<{ productId: number; quantity: number; product?: any }>>([])
+const temporaryCartLoading = ref(false)
+
+// Load temporary cart items
+async function loadTemporaryCartItems() {
+  if (userUid.value) {
+    temporaryCartItems.value = []
+    return
+  }
+  
+  temporaryCartLoading.value = true
+  try {
+    const { getTemporaryCartItems } = await import('@/utils/temporaryCart')
+    const items = getTemporaryCartItems()
+    
+    // Fetch product details for temporary cart items
+    const { fetchProductDetail } = await import('@/services/storeApi')
+    const productPromises = items.map(async (item) => {
+      try {
+        const product = await fetchProductDetail(item.productId)
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          product
+        }
+      } catch (error) {
+        console.error(`Failed to load product ${item.productId}:`, error)
+        return null
+      }
+    })
+    
+    const results = await Promise.all(productPromises)
+    temporaryCartItems.value = results.filter((item): item is NonNullable<typeof item> => item !== null)
+  } catch (error) {
+    console.error('Failed to load temporary cart items:', error)
+  } finally {
+    temporaryCartLoading.value = false
+  }
+}
+
+// Combined cart items (user cart + temporary cart)
+const cartItems = computed(() => {
+  if (userUid.value) {
+    return cartStore.items
+  }
+  // For unauthenticated users, return temporary cart items formatted as cart items
+  return temporaryCartItems.value.map((item) => ({
+    cartItemId: `temp_${item.productId}`, // Temporary ID
+    productId: item.productId,
+    productName: item.product?.name ?? 'Unknown Product',
+    unitPrice: item.product?.price ?? 0,
+    quantity: item.quantity,
+    subtotal: (item.product?.price ?? 0) * item.quantity,
+    currency: item.product?.currency ?? 'USDT',
+    inventoryAvailable: item.product?.inventoryAvailable ?? 0,
+    thumbnailUrl: item.product?.thumbnailUrl
+  }))
+})
+
+const cartTotalAmount = computed(() => {
+  return cartItems.value.reduce((sum, item) => sum + item.subtotal, 0)
+})
+
+const cartTotalQuantity = computed(() => {
+  return cartItems.value.reduce((sum, item) => sum + item.quantity, 0)
+})
+
 const cartCurrency = computed(() => cartItems.value[0]?.currency ?? 'USDT')
 
 const apiBaseUrl = WebApi.getInstance().baseUrl ?? ''
@@ -371,6 +588,14 @@ async function refreshCart() {
 async function handleUpdateQuantity(item: StoreCartItemResult, nextQuantity: number) {
   const uid = userUid.value
   if (!uid) {
+    // Update temporary cart
+    if (item.cartItemId.toString().startsWith('temp_')) {
+      const { updateTemporaryCartItem } = await import('@/utils/temporaryCart')
+      const productId = parseInt(item.cartItemId.toString().replace('temp_', ''))
+      updateTemporaryCartItem(productId, nextQuantity)
+      await loadTemporaryCartItems()
+      return
+    }
     FastDialog.warningSnackbar('Please login first.')
     return
   }
@@ -401,6 +626,15 @@ function handleQuantityInput(item: StoreCartItemResult, value: string | number) 
 async function handleRemoveItem(item: StoreCartItemResult) {
   const uid = userUid.value
   if (!uid) {
+    // Remove from temporary cart
+    if (item.cartItemId.toString().startsWith('temp_')) {
+      const { removeFromTemporaryCart } = await import('@/utils/temporaryCart')
+      const productId = parseInt(item.cartItemId.toString().replace('temp_', ''))
+      removeFromTemporaryCart(productId)
+      await loadTemporaryCartItems()
+      FastDialog.successSnackbar('Item removed')
+      return
+    }
     FastDialog.warningSnackbar('Please login first.')
     return
   }
@@ -496,11 +730,30 @@ async function autoLoginForPayment(): Promise<number | null> {
         return null
       }
 
-      // Refresh cart after auto-login
+      // Transfer temporary cart to user account
       const newUid = userUid.value
       if (newUid) {
+        const { transferTemporaryCartToUser } = await import('@/utils/temporaryCart')
+        const tempItems = transferTemporaryCartToUser()
+        
+        // Add temporary cart items to user cart
+        if (tempItems.length > 0) {
+          try {
+            for (const tempItem of tempItems) {
+              await cartStore.addItem(newUid, tempItem.productId, tempItem.quantity)
+            }
+            FastDialog.successSnackbar(`Account created! ${tempItems.length} item(s) transferred to your cart.`)
+          } catch (error) {
+            console.error('Failed to transfer temporary cart items:', error)
+            FastDialog.warningSnackbar('Account created, but some items could not be transferred. Please add them again.')
+          }
+        }
+        
         await cartStore.refresh(newUid)
-        FastDialog.successSnackbar('Account created and logged in successfully!')
+        await loadTemporaryCartItems() // Clear temporary cart display
+        if (tempItems.length === 0) {
+          FastDialog.successSnackbar('Account created and logged in successfully!')
+        }
         return newUid
       }
     } else {
@@ -740,15 +993,8 @@ onBeforeMount(async () => {
       FastDialog.errorSnackbar((error as Error).message ?? 'Failed to load cart')
     }
   } else {
-    // Not logged in, check wallet and redirect if needed
-    if (!walletStore.state.provider) {
-      console.log('No wallet detected, redirecting to wallet setup page')
-      FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
-      await nextTick()
-      await new Promise(resolve => setTimeout(resolve, 500))
-      window.location.replace('/go')
-      return
-    }
+    // Not logged in, load temporary cart
+    await loadTemporaryCartItems()
   }
 })
 

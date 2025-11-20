@@ -849,7 +849,28 @@ const isSigned = computed(() => userStore.state.signed)
 const cartItems = computed(() => cartStore.items)
 const cartProcessing = computed(() => cartStore.processing)
 const cartTotalAmount = computed(() => cartStore.totalAmount)
-const cartTotalQuantity = computed(() => cartStore.totalQuantity)
+const cartTotalQuantity = computed(() => {
+  const userCartQuantity = cartStore.totalQuantity
+  if (userUid.value) {
+    return userCartQuantity
+  }
+  // If not logged in, include temporary cart quantity
+  // Use dynamic import to avoid circular dependencies
+  let tempQuantity = 0
+  try {
+    // We'll calculate this synchronously by reading localStorage directly
+    const stored = localStorage.getItem('temporary_cart')
+    if (stored) {
+      const items = JSON.parse(stored)
+      const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+      const validItems = items.filter((item: any) => item.addedAt > sevenDaysAgo)
+      tempQuantity = validItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+    }
+  } catch {
+    // Ignore errors
+  }
+  return userCartQuantity + tempQuantity
+})
 const cartCurrency = computed(() => cartItems.value[0]?.currency ?? 'USDT')
 
 const userUid = computed(() => userStore.state.userInfo?.uid ?? null)
@@ -1165,22 +1186,11 @@ function handlePagination(page: number) {
 async function handleAddToCart(product: StoreProductSummaryResult) {
   const uid = userUid.value
   if (!uid) {
-    // 未登录，引导用户登录
-    const loginSuccess = await handleLoginForAddToCart()
-    if (!loginSuccess) {
-      return
-    }
-    // 登录成功后，重新获取 uid 并添加到购物车
-    const newUid = userUid.value
-    if (newUid) {
-      try {
-        await cartStore.addItem(newUid, product.productId, 1)
-        FastDialog.successSnackbar('Added to cart')
-      } catch (error) {
-        console.warn(error)
-        FastDialog.errorSnackbar((error as Error).message ?? 'Failed to add to cart')
-      }
-    }
+    // 未登录，添加到临时购物车
+    const { addToTemporaryCart, getTemporaryCartTotalQuantity } = await import('@/utils/temporaryCart')
+    addToTemporaryCart(product.productId, 1)
+    const totalQuantity = getTemporaryCartTotalQuantity()
+    FastDialog.successSnackbar(`Added to cart (${totalQuantity} items). Connect wallet to checkout.`)
     return
   }
   try {
