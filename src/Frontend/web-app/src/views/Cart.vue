@@ -617,12 +617,120 @@ onBeforeMount(async () => {
   if (uid) {
     try {
       await cartStore.refresh(uid)
+      
+      // Auto-enter payment flow if cart has items
+      if (cartStore.items.length > 0) {
+        // Small delay to ensure UI is ready
+        await nextTick()
+        await new Promise(resolve => setTimeout(resolve, 500))
+        await autoEnterPaymentFlow()
+      }
     } catch (error) {
       console.error('Failed to load cart:', error)
       FastDialog.errorSnackbar((error as Error).message ?? 'Failed to load cart')
     }
+  } else {
+    // Not logged in, check wallet and redirect if needed
+    if (!walletStore.state.provider) {
+      console.log('No wallet detected, redirecting to wallet setup page')
+      FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 500))
+      window.location.replace('/go')
+      return
+    }
   }
-  // Don't redirect if not logged in, show login prompt
 })
+
+/**
+ * Auto-enter payment flow when cart has items
+ */
+async function autoEnterPaymentFlow() {
+  // Check wallet first
+  if (!walletStore.state.provider) {
+    console.log('No wallet detected, redirecting to wallet setup page')
+    FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
+    await nextTick()
+    await new Promise(resolve => setTimeout(resolve, 500))
+    window.location.replace('/go')
+    return
+  }
+
+  // Check if wallet is connected
+  if (!walletStore.state.active || !walletStore.state.address) {
+    try {
+      FastDialog.infoSnackbar('Connecting wallet...')
+      const accounts = await walletStore.connect()
+      if (!accounts || accounts.length === 0) {
+        FastDialog.errorSnackbar('Failed to connect wallet. Please unlock your wallet and try again.')
+        return
+      }
+    } catch (error: any) {
+      console.error('Wallet connection error:', error)
+      if (error.code === 4001) {
+        FastDialog.warningSnackbar('Connection cancelled. Please approve the connection request to continue.')
+      } else if (error.code === -32002) {
+        FastDialog.warningSnackbar('Connection request already pending. Please check your wallet.')
+      } else {
+        FastDialog.errorSnackbar('Failed to connect wallet. Please check your wallet and try again.')
+      }
+      return
+    }
+  }
+
+  // Check if logged in
+  const checkSignedResult = await userStore.checkSigned()
+  if (!checkSignedResult.succeed) {
+    FastDialog.errorSnackbar(checkSignedResult.errorMessage as string)
+    return
+  }
+
+  // If not logged in, need to sign in first
+  if (!checkSignedResult.data?.singined) {
+    try {
+      FastDialog.infoSnackbar('Please sign the message in your wallet to login...')
+      const from = walletStore.state.address
+      const provider = walletStore.state.provider
+      const message = `0x${checkSignedResult.data.tokenText}`
+      
+      const signedText = await provider.request({
+        method: 'personal_sign',
+        params: [message, from]
+      })
+
+      const signResult = await userStore.signIn(signedText)
+      if (!signResult.succeed) {
+        FastDialog.errorSnackbar(signResult.errorMessage as string)
+        return
+      }
+
+      if (!(await userStore.updateUserInfo())) {
+        userStore.signOut()
+        FastDialog.errorSnackbar('Failed to get user information. Please try again.')
+        return
+      }
+
+      // Refresh cart after login
+      const uid = userUid.value
+      if (uid) {
+        await cartStore.refresh(uid)
+      }
+    } catch (error: any) {
+      console.error('Auto-login error:', error)
+      if (error.code === 4001) {
+        FastDialog.warningSnackbar('Login cancelled. Please sign the message to continue.')
+      } else {
+        FastDialog.errorSnackbar('Login failed. Please try again.')
+      }
+      return
+    }
+  }
+
+  // Now proceed to payment - automatically place order
+  if (cartStore.items.length > 0 && userUid.value) {
+    // Auto-place order to enter payment flow
+    await handlePlaceOrder()
+  }
+}
 </script>
 
