@@ -238,8 +238,8 @@ async function guestReady() {
     // 确保路由正确（访客模式应该显示 Home 页面）
     await router.isReady()
     console.log('路由就绪，当前路由:', route.name)
-    // 如果当前在错误页面或登录页面，跳转到首页
-    if (route.meta?.errorPage || route.name === 'Go' || route.name === 'ErrorNoWalletDetected') {
+    // 如果当前在错误页面，跳转到首页（但允许访问 Go 页面，因为用户可能需要设置钱包）
+    if (route.meta?.errorPage || route.name === 'ErrorNoWalletDetected') {
       console.log('跳转到首页...')
       try {
         await router.push({ name: 'Home' })
@@ -249,6 +249,7 @@ async function guestReady() {
         window.location.href = '/'
       }
     }
+    // 注意：不再阻止访问 Go 页面，允许未安装钱包的用户访问钱包设置页面
     
     appLoading.value = false
     console.log('访客模式已就绪，可以浏览商品（只读模式）')

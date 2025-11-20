@@ -510,6 +510,7 @@ async function handleLogin() {
     // Check if wallet provider exists
     if (!walletStore.state.provider) {
       console.log('No wallet provider detected, redirecting to Go page')
+      console.log('Current route:', router.currentRoute.value.name, router.currentRoute.value.path)
       FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
       // Use nextTick to ensure the dialog is shown before navigation
       await nextTick()
@@ -517,7 +518,9 @@ async function handleLogin() {
       await new Promise(resolve => setTimeout(resolve, 500))
       // Redirect to wallet setup page - use window.location directly to bypass any route guards
       console.log('Redirecting to /go using window.location.href')
-      window.location.href = '/go'
+      console.log('Current location:', window.location.href)
+      // Use replace to prevent back button issues
+      window.location.replace('/go')
       return
     }
 
