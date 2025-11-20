@@ -31,6 +31,9 @@
               <v-icon start>mdi-wallet</v-icon>
               Connect Wallet & Login
             </v-btn>
+            <div v-if="!walletStore.state.initialized || !walletStore.state.provider" class="text-caption text-grey-lighten-1 mt-2">
+              No wallet detected. Click to set up your wallet.
+            </div>
             <v-btn color="primary" variant="tonal" class="mt-2" @click="goToHome">
               <v-icon start>mdi-shopping</v-icon>
               Continue Shopping
@@ -506,6 +509,7 @@ async function handleLogin() {
 
     // Check if wallet provider exists
     if (!walletStore.state.provider) {
+      console.log('No wallet provider detected, redirecting to Go page')
       FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
       // Use nextTick to ensure the dialog is shown before navigation
       await nextTick()
@@ -513,10 +517,13 @@ async function handleLogin() {
       await new Promise(resolve => setTimeout(resolve, 500))
       // Redirect to wallet setup page
       try {
-        await router.push({ name: 'Go' })
+        console.log('Attempting to navigate to Go page via router.push')
+        const result = await router.push({ name: 'Go' })
+        console.log('Navigation result:', result)
       } catch (err) {
         console.error('Navigation error:', err)
         // Fallback: use window.location if router.push fails
+        console.log('Using window.location fallback')
         window.location.href = '/go'
       }
       return
