@@ -705,7 +705,7 @@ import {
   StoreOrderSummaryResult
 } from '@/types'
 import { fetchOrderList, fetchProductCategories, fetchProductList } from '@/services/storeApi'
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify/lib/framework.mjs'
 import { useClipboard } from '@vueuse/core'
@@ -1196,7 +1196,11 @@ async function handleAddToCart(product: StoreProductSummaryResult) {
 async function handleLoginForAddToCart(): Promise<boolean> {
   // 检查是否有钱包提供方
   if (!walletStore.state.provider) {
-    FastDialog.warningSnackbar('Please connect your wallet first. If you don\'t have a wallet, please install MetaMask or Bitget Wallet.')
+    console.log('No wallet provider detected in handleLoginForAddToCart, redirecting to Go page')
+    FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
+    await nextTick()
+    await new Promise(resolve => setTimeout(resolve, 500))
+    window.location.replace('/go')
     return false
   }
 
@@ -1293,7 +1297,11 @@ async function handleOpenCart() {
 async function handleLoginForCart() {
   // 检查是否有钱包提供方
   if (!walletStore.state.provider) {
-    FastDialog.warningSnackbar('Please connect your wallet first. If you don\'t have a wallet, please install MetaMask or Bitget Wallet.')
+    console.log('No wallet provider detected in handleLoginForCart, redirecting to Go page')
+    FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
+    await nextTick()
+    await new Promise(resolve => setTimeout(resolve, 500))
+    window.location.replace('/go')
     return
   }
 
