@@ -245,29 +245,45 @@ public class StoreController : ApiControllerBase
     {
         try
         {
-            var product = await _dbContext.Products
+            // 使用 Select 投影，避免加载 Chain 导航属性，直接查询需要的字段
+            var productData = await _dbContext.Products
                 .AsNoTracking()
-                .Include(p => p.Category)
-                .Include(p => p.Inventory)
-                .FirstOrDefaultAsync(p => p.ProductId == productId && p.IsPublished);
+                .Where(p => p.ProductId == productId && p.IsPublished)
+                .Select(p => new
+                {
+                    p.ProductId,
+                    p.CategoryId,
+                    CategoryName = p.Category != null ? p.Category.Name : "未分类",
+                    p.Name,
+                    p.Subtitle,
+                    p.Description,
+                    p.ThumbnailUrl,
+                    p.Price,
+                    p.Currency,
+                    p.IsPublished,
+                    InventoryAvailable = p.Inventory != null 
+                        ? p.Inventory.QuantityAvailable - p.Inventory.QuantityReserved 
+                        : 0,
+                    InventoryReserved = p.Inventory != null ? p.Inventory.QuantityReserved : 0,
+                    p.ChainId,
+                    p.Sku,
+                    p.CreateTime,
+                    p.UpdateTime
+                })
+                .FirstOrDefaultAsync();
 
-            if (product is null)
+            if (productData is null)
             {
                 return WrappedResult.Failed("商品不存在或未上架");
             }
 
-            // 检查 Category 是否存在
-            if (product.Category is null)
-            {
-                return WrappedResult.Failed("商品分类不存在");
-            }
-
+            // 构建分类面包屑
             var categoryMap = await _dbContext.ProductCategories
                 .AsNoTracking()
                 .ToDictionaryAsync(c => c.CategoryId);
 
             List<StoreProductCategoryBreadcrumbResult> breadcrumb = new();
-            if (categoryMap.TryGetValue(product.CategoryId, out var current))
+            if (categoryMap.TryGetValue(productData.CategoryId, out var current))
             {
                 while (current != null)
                 {
@@ -291,24 +307,22 @@ public class StoreController : ApiControllerBase
 
             var detail = new StoreProductDetailResult
             {
-                ProductId = product.ProductId,
-                CategoryId = product.CategoryId,
-                CategoryName = product.Category?.Name ?? "未分类",
-                Name = product.Name,
-                Subtitle = product.Subtitle,
-                Description = product.Description,
-                ThumbnailUrl = product.ThumbnailUrl,
-                Price = product.Price,
-                Currency = product.Currency,
-                IsPublished = product.IsPublished,
-                InventoryAvailable = product.Inventory != null
-                    ? product.Inventory.QuantityAvailable - product.Inventory.QuantityReserved
-                    : 0,
-                InventoryReserved = product.Inventory?.QuantityReserved ?? 0,
-                ChainId = product.ChainId,
-                Sku = product.Sku,
-                CreateTime = product.CreateTime,
-                UpdateTime = product.UpdateTime,
+                ProductId = productData.ProductId,
+                CategoryId = productData.CategoryId,
+                CategoryName = productData.CategoryName,
+                Name = productData.Name,
+                Subtitle = productData.Subtitle,
+                Description = productData.Description,
+                ThumbnailUrl = productData.ThumbnailUrl,
+                Price = productData.Price,
+                Currency = productData.Currency,
+                IsPublished = productData.IsPublished,
+                InventoryAvailable = productData.InventoryAvailable,
+                InventoryReserved = productData.InventoryReserved,
+                ChainId = productData.ChainId,
+                Sku = productData.Sku,
+                CreateTime = productData.CreateTime,
+                UpdateTime = productData.UpdateTime,
                 Breadcrumb = breadcrumb
             };
 
