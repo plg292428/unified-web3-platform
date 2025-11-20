@@ -191,9 +191,30 @@
               </v-btn>
             </v-card-actions>
             <v-card-text v-if="!walletStore.state.provider" class="text-center">
-              <v-chip size="small" color="warning" variant="tonal">
+              <v-chip size="small" color="warning" variant="tonal" class="mb-2">
                 No wallet detected. Please install a wallet first.
               </v-chip>
+              <div class="mt-3">
+                <v-btn
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  class="mr-2"
+                  @click="installWallet('metamask')"
+                >
+                  <v-icon start size="small">mdi-wallet</v-icon>
+                  Install MetaMask
+                </v-btn>
+                <v-btn
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  @click="installWallet('bitget')"
+                >
+                  <v-icon start size="small">mdi-wallet</v-icon>
+                  Install Bitget Wallet
+                </v-btn>
+              </div>
             </v-card-text>
           </v-card>
         </template>
@@ -570,6 +591,14 @@ function goToOrders() {
   router.push({ name: 'Orders' })
 }
 
+function installWallet(walletType: 'metamask' | 'bitget') {
+  if (walletType === 'metamask') {
+    window.open('https://metamask.io/download/', '_blank', 'noopener')
+  } else if (walletType === 'bitget') {
+    window.open('https://web3.bitget.com/en/tools/wallet', '_blank', 'noopener')
+  }
+}
+
 async function refreshCart() {
   const uid = userUid.value
   if (!uid) {
@@ -666,15 +695,16 @@ async function autoLoginForPayment(): Promise<number | null> {
 
   const walletState = walletStore.state
 
-  // Check if wallet provider exists
-  if (!walletState.provider) {
-    console.log('No wallet provider detected, redirecting to Go page')
-    FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
-    await nextTick()
-    await new Promise(resolve => setTimeout(resolve, 500))
-    window.location.replace('/go')
-    return null
-  }
+    // Check if wallet provider exists
+    if (!walletState.provider) {
+      console.log('No wallet provider detected, redirecting to Go page')
+      FastDialog.warningSnackbar('No wallet detected. Please install MetaMask or Bitget Wallet to continue.')
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 500))
+      // Redirect to Go page which has wallet installation options
+      window.location.replace('/go')
+      return null
+    }
 
   // Check if wallet is connected
   if (!walletState.active || !walletState.address) {
@@ -874,7 +904,7 @@ async function handleLogin() {
     if (!walletStore.state.provider) {
       console.log('No wallet provider detected, redirecting to Go page')
       console.log('Current route:', router.currentRoute.value.name, router.currentRoute.value.path)
-      FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
+      FastDialog.warningSnackbar('No wallet detected. Please install MetaMask or Bitget Wallet to continue.')
       // Use nextTick to ensure the dialog is shown before navigation
       await nextTick()
       // Small delay to ensure user sees the message
