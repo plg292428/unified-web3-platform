@@ -515,26 +515,9 @@ async function handleLogin() {
       await nextTick()
       // Small delay to ensure user sees the message
       await new Promise(resolve => setTimeout(resolve, 500))
-      // Redirect to wallet setup page
-      // Use setTimeout to ensure navigation happens after dialog is shown
-      setTimeout(() => {
-        try {
-          console.log('Attempting to navigate to Go page via router.push')
-          router.push({ name: 'Go' }).then(() => {
-            console.log('Navigation to Go page successful')
-          }).catch((err) => {
-            console.error('Navigation error:', err)
-            // Fallback: use window.location if router.push fails
-            console.log('Using window.location fallback')
-            window.location.href = '/go'
-          })
-        } catch (err) {
-          console.error('Navigation error:', err)
-          // Fallback: use window.location if router.push fails
-          console.log('Using window.location fallback')
-          window.location.href = '/go'
-        }
-      }, 300)
+      // Redirect to wallet setup page - use window.location directly to bypass any route guards
+      console.log('Redirecting to /go using window.location.href')
+      window.location.href = '/go'
       return
     }
 
