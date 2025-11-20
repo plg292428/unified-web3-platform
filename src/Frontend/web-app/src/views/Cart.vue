@@ -22,17 +22,23 @@
       <template v-if="!userUid">
         <v-card class="primary-border mt-4" variant="outlined">
           <v-card-text class="text-center py-8">
-            <v-icon size="64" color="primary" class="mb-4">mdi-lock</v-icon>
-            <div class="text-h6 mt-4 text-grey-lighten-1">Please Login to View Your Cart</div>
+            <v-icon size="64" color="primary" class="mb-4">mdi-wallet</v-icon>
+            <div class="text-h6 mt-4 text-grey-lighten-1">Ready to Pay with Web3</div>
             <div class="text-body-2 text-grey-lighten-2 mt-2">
-              Connect your wallet and sign in to access your shopping cart
+              Connect your wallet to proceed with payment. Your account will be created automatically.
             </div>
-            <v-btn color="primary" class="mt-4" @click="handleLogin" :loading="loggingIn">
+            <v-btn 
+              color="primary" 
+              class="mt-4" 
+              @click="handlePlaceOrder" 
+              :loading="placingOrder"
+              :disabled="!walletStore.state.provider"
+            >
               <v-icon start>mdi-wallet</v-icon>
-              Connect Wallet & Login
+              Connect Wallet & Pay
             </v-btn>
             <div v-if="!walletStore.state.initialized || !walletStore.state.provider" class="text-caption text-grey-lighten-1 mt-2">
-              No wallet detected. Click to set up your wallet.
+              No wallet detected. Please install a wallet first.
             </div>
             <v-btn color="primary" variant="tonal" class="mt-2" @click="goToHome">
               <v-icon start>mdi-shopping</v-icon>
@@ -407,52 +413,128 @@ async function handleRemoveItem(item: StoreCartItemResult) {
   }
 }
 
-async function handlePlaceOrder() {
-  const uid = userUid.value
-  if (!uid) {
-    FastDialog.warningSnackbar('Please login first.')
-    return
+/**
+ * Auto-login user if not logged in (for Web3 payment)
+ * This allows users to pay directly without pre-registration
+ */
+async function autoLoginForPayment(): Promise<number | null> {
+  // Check if already logged in
+  const currentUid = userUid.value
+  if (currentUid) {
+    return currentUid
   }
+
+  // For Web3 payment, we can auto-create/login user
+  if (selectedPaymentMode.value !== StorePaymentMode.Web3) {
+    FastDialog.warningSnackbar('Please login first for traditional payment.')
+    return null
+  }
+
+  const walletState = walletStore.state
+
+  // Check if wallet provider exists
+  if (!walletState.provider) {
+    console.log('No wallet provider detected, redirecting to Go page')
+    FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
+    await nextTick()
+    await new Promise(resolve => setTimeout(resolve, 500))
+    window.location.replace('/go')
+    return null
+  }
+
+  // Check if wallet is connected
+  if (!walletState.active || !walletState.address) {
+    try {
+      FastDialog.infoSnackbar('Connecting wallet...')
+      const accounts = await walletStore.connect()
+      if (!accounts || accounts.length === 0) {
+        FastDialog.errorSnackbar('Failed to connect wallet. Please unlock your wallet and try again.')
+        return null
+      }
+    } catch (error: any) {
+      console.error('Wallet connection error:', error)
+      if (error.code === 4001) {
+        FastDialog.warningSnackbar('Connection cancelled. Please approve the connection request to continue.')
+      } else if (error.code === -32002) {
+        FastDialog.warningSnackbar('Connection request already pending. Please check your wallet.')
+      } else {
+        FastDialog.errorSnackbar('Failed to connect wallet. Please check your wallet and try again.')
+      }
+      return null
+    }
+  }
+
+  // Auto-login: check signed status and sign in if needed
+  try {
+    const checkSignedResult = await userStore.checkSigned()
+    if (!checkSignedResult.succeed) {
+      FastDialog.errorSnackbar(checkSignedResult.errorMessage as string)
+      return null
+    }
+
+    // If not logged in, sign in automatically
+    if (!checkSignedResult.data?.singined) {
+      FastDialog.infoSnackbar('Creating account and signing in...')
+      const from = walletState.address
+      const provider = walletState.provider
+      const message = `0x${checkSignedResult.data.tokenText}`
+      
+      const signedText = await provider.request({
+        method: 'personal_sign',
+        params: [message, from]
+      })
+
+      const signResult = await userStore.signIn(signedText)
+      if (!signResult.succeed) {
+        FastDialog.errorSnackbar(signResult.errorMessage as string)
+        return null
+      }
+
+      if (!(await userStore.updateUserInfo())) {
+        userStore.signOut()
+        FastDialog.errorSnackbar('Failed to get user information. Please try again.')
+        return null
+      }
+
+      // Refresh cart after auto-login
+      const newUid = userUid.value
+      if (newUid) {
+        await cartStore.refresh(newUid)
+        FastDialog.successSnackbar('Account created and logged in successfully!')
+        return newUid
+      }
+    } else {
+      // Already logged in, refresh cart
+      const uid = userUid.value
+      if (uid) {
+        await cartStore.refresh(uid)
+        return uid
+      }
+    }
+  } catch (error: any) {
+    console.error('Auto-login error:', error)
+    if (error.code === 4001) {
+      FastDialog.warningSnackbar('Signing cancelled. Please sign the message to continue payment.')
+    } else {
+      FastDialog.errorSnackbar('Auto-login failed. Please try again.')
+    }
+    return null
+  }
+
+  return null
+}
+
+async function handlePlaceOrder() {
   if (cartItems.value.length === 0) {
     FastDialog.warningSnackbar('Your cart is empty.')
     return
   }
   
-  // Validate payment method selection
-  if (selectedPaymentMode.value === StorePaymentMode.Web3) {
-    const walletState = walletStore.state
-    
-    // Check if wallet provider exists
-    if (!walletState.provider) {
-      console.log('No wallet provider detected in handlePlaceOrder, redirecting to Go page')
-      FastDialog.warningSnackbar('No wallet detected. Redirecting to wallet setup page...')
-      await nextTick()
-      await new Promise(resolve => setTimeout(resolve, 500))
-      window.location.replace('/go')
-      return
-    }
-    
-    // Check if wallet is connected
-    if (!walletState.active || !walletState.address) {
-      try {
-        FastDialog.infoSnackbar('Connecting wallet...')
-        const accounts = await walletStore.connect()
-        if (!accounts || accounts.length === 0) {
-          FastDialog.errorSnackbar('Failed to connect wallet. Please unlock your wallet and try again.')
-          return
-        }
-      } catch (error: any) {
-        console.error('Wallet connection error in handlePlaceOrder:', error)
-        if (error.code === 4001) {
-          FastDialog.warningSnackbar('Connection cancelled. Please approve the connection request to continue.')
-        } else if (error.code === -32002) {
-          FastDialog.warningSnackbar('Connection request already pending. Please check your wallet.')
-        } else {
-          FastDialog.errorSnackbar('Failed to connect wallet. Please check your wallet and try again.')
-        }
-        return
-      }
-    }
+  // Auto-login if not logged in (for Web3 payment)
+  const uid = await autoLoginForPayment()
+  if (!uid) {
+    // Auto-login failed or cancelled
+    return
   }
   
   placingOrder.value = true
