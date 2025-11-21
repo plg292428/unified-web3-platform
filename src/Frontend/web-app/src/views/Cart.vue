@@ -44,6 +44,167 @@
               </v-btn>
             </v-card-text>
           </v-card>
+
+          <!-- Product List Section for Empty Cart (Unauthenticated) -->
+          <v-card class="primary-border mt-4" variant="outlined">
+            <v-card-title class="d-flex align-center">
+              <v-icon icon="mdi-store" class="mr-2" color="primary"></v-icon>
+              <span>Add More Products</span>
+              <v-spacer></v-spacer>
+              <v-btn
+                icon
+                size="small"
+                variant="text"
+                @click="toggleProductList"
+              >
+                <v-icon>{{ showProductList ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+              </v-btn>
+            </v-card-title>
+            <v-expand-transition>
+              <div v-show="showProductList">
+                <v-divider></v-divider>
+                <v-card-text>
+                  <!-- Product Loading -->
+                  <div v-if="productListLoading" class="text-center py-8">
+                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                    <div class="text-body-2 text-grey-lighten-1 mt-2">Loading products...</div>
+                  </div>
+
+                  <!-- Product Grid -->
+                  <v-row v-else-if="productList.length > 0" dense>
+                    <v-col
+                      v-for="product in productList"
+                      :key="product.productId"
+                      cols="12"
+                      sm="6"
+                      md="4"
+                    >
+                      <v-card
+                        variant="outlined"
+                        class="product-card"
+                        :class="{ 'product-in-cart': isProductInCart(product.productId) }"
+                      >
+                        <v-img
+                          :src="resolveProductImage(product)"
+                          height="120"
+                          cover
+                          class="bg-grey-darken-3"
+                          @click="viewProductDetail(product.productId)"
+                          style="cursor: pointer;"
+                        >
+                          <template v-slot:placeholder>
+                            <div class="d-flex align-center justify-center fill-height">
+                              <v-icon color="grey">mdi-image</v-icon>
+                            </div>
+                          </template>
+                        </v-img>
+                        <v-card-text class="pa-3">
+                          <div class="text-subtitle-2 font-weight-medium mb-1" style="min-height: 40px;">
+                            {{ product.name }}
+                          </div>
+                          <div class="text-body-2 text-primary font-weight-bold mb-2">
+                            {{ Filter.formatPrice(product.price) }} {{ product.currency }}
+                          </div>
+                          <div class="d-flex align-center">
+                            <v-chip
+                              v-if="product.inventoryAvailable > 0"
+                              size="x-small"
+                              color="success"
+                              variant="tonal"
+                            >
+                              Stock: {{ product.inventoryAvailable }}
+                            </v-chip>
+                            <v-chip
+                              v-else
+                              size="x-small"
+                              color="error"
+                              variant="tonal"
+                            >
+                              Out of Stock
+                            </v-chip>
+                          </div>
+                        </v-card-text>
+                        <v-card-actions class="pa-3 pt-0">
+                          <!-- If product is in cart, show quantity controls -->
+                          <template v-if="isProductInCart(product.productId)">
+                            <div class="d-flex align-center w-100">
+                              <v-btn
+                                icon="mdi-minus"
+                                variant="outlined"
+                                size="small"
+                                color="primary"
+                                :disabled="temporaryCartLoading || getCartItemQuantity(product.productId) <= 1"
+                                @click="decreaseProductQuantity(product)"
+                              ></v-btn>
+                              <v-text-field
+                                class="mx-2 quantity-input"
+                                style="max-width: 70px"
+                                type="number"
+                                density="compact"
+                                variant="outlined"
+                                hide-details
+                                :model-value="getCartItemQuantity(product.productId)"
+                                :disabled="temporaryCartLoading || product.inventoryAvailable <= 0"
+                                :min="1"
+                                :max="product.inventoryAvailable"
+                                @update:model-value="(value: number) => updateProductQuantity(product, value)"
+                              />
+                              <v-btn
+                                icon="mdi-plus"
+                                variant="outlined"
+                                size="small"
+                                color="primary"
+                                :disabled="temporaryCartLoading || getCartItemQuantity(product.productId) >= product.inventoryAvailable"
+                                @click="increaseProductQuantity(product)"
+                              ></v-btn>
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                icon="mdi-delete"
+                                color="error"
+                                variant="text"
+                                size="small"
+                                :disabled="temporaryCartLoading"
+                                @click="removeProductFromCart(product)"
+                              ></v-btn>
+                            </div>
+                          </template>
+                          <!-- If product is not in cart, show add button -->
+                          <v-btn
+                            v-else
+                            color="primary"
+                            variant="flat"
+                            size="small"
+                            block
+                            :disabled="temporaryCartLoading || product.inventoryAvailable <= 0"
+                            @click="addProductToCart(product)"
+                          >
+                            <v-icon start size="18">mdi-cart-plus</v-icon>
+                            Add to Cart
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+
+                  <!-- Empty Product List -->
+                  <div v-else class="text-center py-8">
+                    <v-icon size="64" color="grey">mdi-package-variant</v-icon>
+                    <div class="text-body-1 text-grey-lighten-1 mt-2">No products available</div>
+                  </div>
+
+                  <!-- Pagination -->
+                  <v-pagination
+                    v-if="productTotalPages > 1"
+                    v-model="productPage"
+                    :length="productTotalPages"
+                    :total-visible="5"
+                    class="mt-4"
+                    @update:model-value="loadProducts"
+                  ></v-pagination>
+                </v-card-text>
+              </div>
+            </v-expand-transition>
+          </v-card>
         </template>
 
         <!-- Temporary Cart with Items -->
@@ -222,6 +383,167 @@
               </div>
             </v-card-text>
           </v-card>
+
+          <!-- Product List Section for Unauthenticated Users -->
+          <v-card class="primary-border mt-4" variant="outlined">
+            <v-card-title class="d-flex align-center">
+              <v-icon icon="mdi-store" class="mr-2" color="primary"></v-icon>
+              <span>Add More Products</span>
+              <v-spacer></v-spacer>
+              <v-btn
+                icon
+                size="small"
+                variant="text"
+                @click="toggleProductList"
+              >
+                <v-icon>{{ showProductList ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+              </v-btn>
+            </v-card-title>
+            <v-expand-transition>
+              <div v-show="showProductList">
+                <v-divider></v-divider>
+                <v-card-text>
+                  <!-- Product Loading -->
+                  <div v-if="productListLoading" class="text-center py-8">
+                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                    <div class="text-body-2 text-grey-lighten-1 mt-2">Loading products...</div>
+                  </div>
+
+                  <!-- Product Grid -->
+                  <v-row v-else-if="productList.length > 0" dense>
+                    <v-col
+                      v-for="product in productList"
+                      :key="product.productId"
+                      cols="12"
+                      sm="6"
+                      md="4"
+                    >
+                      <v-card
+                        variant="outlined"
+                        class="product-card"
+                        :class="{ 'product-in-cart': isProductInCart(product.productId) }"
+                      >
+                        <v-img
+                          :src="resolveProductImage(product)"
+                          height="120"
+                          cover
+                          class="bg-grey-darken-3"
+                          @click="viewProductDetail(product.productId)"
+                          style="cursor: pointer;"
+                        >
+                          <template v-slot:placeholder>
+                            <div class="d-flex align-center justify-center fill-height">
+                              <v-icon color="grey">mdi-image</v-icon>
+                            </div>
+                          </template>
+                        </v-img>
+                        <v-card-text class="pa-3">
+                          <div class="text-subtitle-2 font-weight-medium mb-1" style="min-height: 40px;">
+                            {{ product.name }}
+                          </div>
+                          <div class="text-body-2 text-primary font-weight-bold mb-2">
+                            {{ Filter.formatPrice(product.price) }} {{ product.currency }}
+                          </div>
+                          <div class="d-flex align-center">
+                            <v-chip
+                              v-if="product.inventoryAvailable > 0"
+                              size="x-small"
+                              color="success"
+                              variant="tonal"
+                            >
+                              Stock: {{ product.inventoryAvailable }}
+                            </v-chip>
+                            <v-chip
+                              v-else
+                              size="x-small"
+                              color="error"
+                              variant="tonal"
+                            >
+                              Out of Stock
+                            </v-chip>
+                          </div>
+                        </v-card-text>
+                        <v-card-actions class="pa-3 pt-0">
+                          <!-- If product is in cart, show quantity controls -->
+                          <template v-if="isProductInCart(product.productId)">
+                            <div class="d-flex align-center w-100">
+                              <v-btn
+                                icon="mdi-minus"
+                                variant="outlined"
+                                size="small"
+                                color="primary"
+                                :disabled="temporaryCartLoading || getCartItemQuantity(product.productId) <= 1"
+                                @click="decreaseProductQuantity(product)"
+                              ></v-btn>
+                              <v-text-field
+                                class="mx-2 quantity-input"
+                                style="max-width: 70px"
+                                type="number"
+                                density="compact"
+                                variant="outlined"
+                                hide-details
+                                :model-value="getCartItemQuantity(product.productId)"
+                                :disabled="temporaryCartLoading || product.inventoryAvailable <= 0"
+                                :min="1"
+                                :max="product.inventoryAvailable"
+                                @update:model-value="(value: number) => updateProductQuantity(product, value)"
+                              />
+                              <v-btn
+                                icon="mdi-plus"
+                                variant="outlined"
+                                size="small"
+                                color="primary"
+                                :disabled="temporaryCartLoading || getCartItemQuantity(product.productId) >= product.inventoryAvailable"
+                                @click="increaseProductQuantity(product)"
+                              ></v-btn>
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                icon="mdi-delete"
+                                color="error"
+                                variant="text"
+                                size="small"
+                                :disabled="temporaryCartLoading"
+                                @click="removeProductFromCart(product)"
+                              ></v-btn>
+                            </div>
+                          </template>
+                          <!-- If product is not in cart, show add button -->
+                          <v-btn
+                            v-else
+                            color="primary"
+                            variant="flat"
+                            size="small"
+                            block
+                            :disabled="temporaryCartLoading || product.inventoryAvailable <= 0"
+                            @click="addProductToCart(product)"
+                          >
+                            <v-icon start size="18">mdi-cart-plus</v-icon>
+                            Add to Cart
+                          </v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+
+                  <!-- Empty Product List -->
+                  <div v-else class="text-center py-8">
+                    <v-icon size="64" color="grey">mdi-package-variant</v-icon>
+                    <div class="text-body-1 text-grey-lighten-1 mt-2">No products available</div>
+                  </div>
+
+                  <!-- Pagination -->
+                  <v-pagination
+                    v-if="productTotalPages > 1"
+                    v-model="productPage"
+                    :length="productTotalPages"
+                    :total-visible="5"
+                    class="mt-4"
+                    @update:model-value="loadProducts"
+                  ></v-pagination>
+                </v-card-text>
+              </div>
+            </v-expand-transition>
+          </v-card>
         </template>
       </template>
 
@@ -248,6 +570,167 @@
               Go Shopping
             </v-btn>
           </v-card-text>
+        </v-card>
+
+        <!-- Product List Section for Empty Cart (Logged In) -->
+        <v-card class="primary-border mt-4" variant="outlined">
+          <v-card-title class="d-flex align-center">
+            <v-icon icon="mdi-store" class="mr-2" color="primary"></v-icon>
+            <span>Add More Products</span>
+            <v-spacer></v-spacer>
+            <v-btn
+              icon
+              size="small"
+              variant="text"
+              @click="toggleProductList"
+            >
+              <v-icon>{{ showProductList ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+            </v-btn>
+          </v-card-title>
+          <v-expand-transition>
+            <div v-show="showProductList">
+              <v-divider></v-divider>
+              <v-card-text>
+                <!-- Product Loading -->
+                <div v-if="productListLoading" class="text-center py-8">
+                  <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                  <div class="text-body-2 text-grey-lighten-1 mt-2">Loading products...</div>
+                </div>
+
+                <!-- Product Grid -->
+                <v-row v-else-if="productList.length > 0" dense>
+                  <v-col
+                    v-for="product in productList"
+                    :key="product.productId"
+                    cols="12"
+                    sm="6"
+                    md="4"
+                  >
+                    <v-card
+                      variant="outlined"
+                      class="product-card"
+                      :class="{ 'product-in-cart': isProductInCart(product.productId) }"
+                    >
+                      <v-img
+                        :src="resolveProductImage(product)"
+                        height="120"
+                        cover
+                        class="bg-grey-darken-3"
+                        @click="viewProductDetail(product.productId)"
+                        style="cursor: pointer;"
+                      >
+                        <template v-slot:placeholder>
+                          <div class="d-flex align-center justify-center fill-height">
+                            <v-icon color="grey">mdi-image</v-icon>
+                          </div>
+                        </template>
+                      </v-img>
+                      <v-card-text class="pa-3">
+                        <div class="text-subtitle-2 font-weight-medium mb-1" style="min-height: 40px;">
+                          {{ product.name }}
+                        </div>
+                        <div class="text-body-2 text-primary font-weight-bold mb-2">
+                          {{ Filter.formatPrice(product.price) }} {{ product.currency }}
+                        </div>
+                        <div class="d-flex align-center">
+                          <v-chip
+                            v-if="product.inventoryAvailable > 0"
+                            size="x-small"
+                            color="success"
+                            variant="tonal"
+                          >
+                            Stock: {{ product.inventoryAvailable }}
+                          </v-chip>
+                          <v-chip
+                            v-else
+                            size="x-small"
+                            color="error"
+                            variant="tonal"
+                          >
+                            Out of Stock
+                          </v-chip>
+                        </div>
+                      </v-card-text>
+                      <v-card-actions class="pa-3 pt-0">
+                        <!-- If product is in cart, show quantity controls -->
+                        <template v-if="isProductInCart(product.productId)">
+                          <div class="d-flex align-center w-100">
+                            <v-btn
+                              icon="mdi-minus"
+                              variant="outlined"
+                              size="small"
+                              color="primary"
+                              :disabled="cartStore.processing || getCartItemQuantity(product.productId) <= 1"
+                              @click="decreaseProductQuantity(product)"
+                            ></v-btn>
+                            <v-text-field
+                              class="mx-2 quantity-input"
+                              style="max-width: 70px"
+                              type="number"
+                              density="compact"
+                              variant="outlined"
+                              hide-details
+                              :model-value="getCartItemQuantity(product.productId)"
+                              :disabled="cartStore.processing || product.inventoryAvailable <= 0"
+                              :min="1"
+                              :max="product.inventoryAvailable"
+                              @update:model-value="(value: number) => updateProductQuantity(product, value)"
+                            />
+                            <v-btn
+                              icon="mdi-plus"
+                              variant="outlined"
+                              size="small"
+                              color="primary"
+                              :disabled="cartStore.processing || getCartItemQuantity(product.productId) >= product.inventoryAvailable"
+                              @click="increaseProductQuantity(product)"
+                            ></v-btn>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              icon="mdi-delete"
+                              color="error"
+                              variant="text"
+                              size="small"
+                              :disabled="cartStore.processing"
+                              @click="removeProductFromCart(product)"
+                            ></v-btn>
+                          </div>
+                        </template>
+                        <!-- If product is not in cart, show add button -->
+                        <v-btn
+                          v-else
+                          color="primary"
+                          variant="flat"
+                          size="small"
+                          block
+                          :disabled="cartStore.processing || product.inventoryAvailable <= 0"
+                          @click="addProductToCart(product)"
+                        >
+                          <v-icon start size="18">mdi-cart-plus</v-icon>
+                          Add to Cart
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-col>
+                </v-row>
+
+                <!-- Empty Product List -->
+                <div v-else class="text-center py-8">
+                  <v-icon size="64" color="grey">mdi-package-variant</v-icon>
+                  <div class="text-body-1 text-grey-lighten-1 mt-2">No products available</div>
+                </div>
+
+                <!-- Pagination -->
+                <v-pagination
+                  v-if="productTotalPages > 1"
+                  v-model="productPage"
+                  :length="productTotalPages"
+                  :total-visible="5"
+                  class="mt-4"
+                  @update:model-value="loadProducts"
+                ></v-pagination>
+              </v-card-text>
+            </div>
+          </v-expand-transition>
         </v-card>
       </template>
 
