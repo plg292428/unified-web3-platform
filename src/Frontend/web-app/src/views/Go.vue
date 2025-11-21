@@ -40,6 +40,75 @@
         </template>
       </div>
     </v-responsive>
+
+    <!-- Wallet Installation Dialog -->
+    <v-dialog v-model="showWalletDialog" max-width="520" persistent>
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon icon="mdi-wallet" class="mr-2" color="primary"></v-icon>
+          <span>Install Wallet</span>
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text class="pt-6">
+          <div class="text-body-1 text-center mb-4">
+            No wallet detected. Please choose a wallet to install:
+          </div>
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <v-card
+                variant="outlined"
+                class="wallet-option-card"
+                :class="{ 'selected': selectedWallet === 'metamask' }"
+                @click="selectWallet('metamask')"
+                style="cursor: pointer; transition: all 0.2s;"
+              >
+                <v-card-text class="text-center pa-4">
+                  <v-avatar size="64" class="mb-3">
+                    <v-img :src="getWalletIcon('MetaMask')" :alt="'MetaMask'"></v-img>
+                  </v-avatar>
+                  <div class="text-subtitle-1 font-weight-medium">MetaMask</div>
+                  <div class="text-caption text-grey-lighten-1 mt-1">
+                    The most popular Web3 wallet
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-card
+                variant="outlined"
+                class="wallet-option-card"
+                :class="{ 'selected': selectedWallet === 'bitget' }"
+                @click="selectWallet('bitget')"
+                style="cursor: pointer; transition: all 0.2s;"
+              >
+                <v-card-text class="text-center pa-4">
+                  <v-avatar size="64" class="mb-3">
+                    <v-img :src="getWalletIcon('Bitget')" :alt="'Bitget Wallet'"></v-img>
+                  </v-avatar>
+                  <div class="text-subtitle-1 font-weight-medium">Bitget Wallet</div>
+                  <div class="text-caption text-grey-lighten-1 mt-1">
+                    Secure multi-chain wallet
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn variant="text" @click="closeWalletDialog">Cancel</v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            :disabled="!selectedWallet"
+            @click="installSelectedWallet"
+          >
+            Install
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -57,6 +126,8 @@ const walletStore = useWalletStore()
 const serverConfigsStore = useServerConfigsStore()
 
 const buttonLoading = ref(false)
+const showWalletDialog = ref(false)
+const selectedWallet = ref<'metamask' | 'bitget' | null>(null)
 const chainNetworkConfigs = serverConfigsStore.state.chainNetworkConfigs
 const wallts = [
   { src: getWalletIcon('Trust'), alt: 'Trust' },
@@ -68,6 +139,28 @@ const wallts = [
 
 function getWalletIcon(name: string) {
   return new URL(`../assets/wallets/${name}.webp`, import.meta.url).href
+}
+
+function selectWallet(wallet: 'metamask' | 'bitget') {
+  selectedWallet.value = wallet
+}
+
+function closeWalletDialog() {
+  showWalletDialog.value = false
+  selectedWallet.value = null
+}
+
+function installSelectedWallet() {
+  if (!selectedWallet.value) return
+  
+  if (selectedWallet.value === 'metamask') {
+    window.open('https://metamask.io/download/', '_blank', 'noopener')
+  } else if (selectedWallet.value === 'bitget') {
+    window.open('https://web3.bitget.com/en/tools/wallet', '_blank', 'noopener')
+  }
+  
+  FastDialog.infoSnackbar('Opening wallet download page in a new tab...')
+  closeWalletDialog()
 }
 
 // Login handling
@@ -82,23 +175,9 @@ async function getStarted() {
 
     // Check if wallet provider exists
     if (!walletStore.state.provider) {
-      FastDialog.warningSnackbar('No wallet detected. Please install MetaMask or Bitget Wallet to continue.')
       buttonLoading.value = false
-      
-      // Open wallet download page in new tab
-      setTimeout(() => {
-        const installChoice = window.confirm(
-          'No wallet detected. Would you like to:\n\n' +
-          'OK - Install MetaMask\n' +
-          'Cancel - Install Bitget Wallet'
-        )
-        
-        if (installChoice) {
-          window.open('https://metamask.io/download/', '_blank', 'noopener')
-        } else {
-          window.open('https://web3.bitget.com/en/tools/wallet', '_blank', 'noopener')
-        }
-      }, 500)
+      // Show wallet selection dialog
+      showWalletDialog.value = true
       return
     }
 
@@ -263,3 +342,21 @@ onBeforeMount(async () => {
   }
 })
 </script>
+
+<style scoped>
+.wallet-option-card {
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.wallet-option-card:hover {
+  border-color: rgba(var(--v-theme-primary), 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.wallet-option-card.selected {
+  border-color: rgb(var(--v-theme-primary));
+  background-color: rgba(var(--v-theme-primary), 0.1);
+}
+</style>
