@@ -100,18 +100,20 @@
                       </span>
                     </div>
                   </template>
-                  <template #append>
-                    <div class="d-flex align-center">
+                <template #append>
+                  <div class="d-flex align-center">
+                    <div class="d-flex align-center quantity-controls">
                       <v-btn
                         icon="mdi-minus"
-                        variant="text"
+                        variant="outlined"
                         size="small"
-                        :disabled="temporaryCartLoading"
+                        color="primary"
+                        :disabled="temporaryCartLoading || item.quantity <= 1"
                         @click="handleUpdateQuantity(item, item.quantity - 1)"
                       ></v-btn>
                       <v-text-field
-                        class="mx-2"
-                        style="max-width: 80px"
+                        class="mx-2 quantity-input"
+                        style="max-width: 90px"
                         type="number"
                         density="compact"
                         variant="outlined"
@@ -119,26 +121,29 @@
                         :model-value="item.quantity"
                         :disabled="temporaryCartLoading"
                         :min="1"
+                        :max="item.inventoryAvailable"
                         @update:model-value="(value: number) => handleQuantityInput(item, value)"
                       />
                       <v-btn
                         icon="mdi-plus"
-                        variant="text"
+                        variant="outlined"
                         size="small"
-                        :disabled="temporaryCartLoading"
+                        color="primary"
+                        :disabled="temporaryCartLoading || item.quantity >= item.inventoryAvailable"
                         @click="handleUpdateQuantity(item, item.quantity + 1)"
                       ></v-btn>
-                      <v-btn
-                        icon="mdi-delete"
-                        color="error"
-                        variant="text"
-                        size="small"
-                        class="ml-2"
-                        :disabled="temporaryCartLoading"
-                        @click="handleRemoveItem(item)"
-                      ></v-btn>
                     </div>
-                  </template>
+                    <v-btn
+                      icon="mdi-delete"
+                      color="error"
+                      variant="text"
+                      size="small"
+                      class="ml-3"
+                      :disabled="temporaryCartLoading"
+                      @click="handleRemoveItem(item)"
+                    ></v-btn>
+                  </div>
+                </template>
                 </v-list-item>
               </v-list>
             </v-card-text>
@@ -316,39 +321,43 @@
                 </template>
                 <template #append>
                   <div class="d-flex align-center">
-                    <v-btn
-                      icon="mdi-minus"
-                      variant="text"
-                      size="small"
-                      :disabled="cartStore.processing"
-                      @click="handleUpdateQuantity(item, item.quantity - 1)"
-                    ></v-btn>
-                    <v-text-field
-                      class="mx-2"
-                      style="max-width: 80px"
-                      type="number"
-                      density="compact"
-                      variant="outlined"
-                      hide-details
-                      :model-value="item.quantity"
-                      :disabled="cartStore.processing || item.inventoryAvailable <= 0"
-                      :min="1"
-                      :max="item.inventoryAvailable"
-                      @update:model-value="(value: number) => handleQuantityInput(item, value)"
-                    />
-                    <v-btn
-                      icon="mdi-plus"
-                      variant="text"
-                      size="small"
-                      :disabled="cartStore.processing || item.quantity >= item.inventoryAvailable"
-                      @click="handleUpdateQuantity(item, item.quantity + 1)"
-                    ></v-btn>
+                    <div class="d-flex align-center quantity-controls">
+                      <v-btn
+                        icon="mdi-minus"
+                        variant="outlined"
+                        size="small"
+                        color="primary"
+                        :disabled="cartStore.processing || item.quantity <= 1"
+                        @click="handleUpdateQuantity(item, item.quantity - 1)"
+                      ></v-btn>
+                      <v-text-field
+                        class="mx-2 quantity-input"
+                        style="max-width: 90px"
+                        type="number"
+                        density="compact"
+                        variant="outlined"
+                        hide-details
+                        :model-value="item.quantity"
+                        :disabled="cartStore.processing || item.inventoryAvailable <= 0"
+                        :min="1"
+                        :max="item.inventoryAvailable"
+                        @update:model-value="(value: number) => handleQuantityInput(item, value)"
+                      />
+                      <v-btn
+                        icon="mdi-plus"
+                        variant="outlined"
+                        size="small"
+                        color="primary"
+                        :disabled="cartStore.processing || item.quantity >= item.inventoryAvailable"
+                        @click="handleUpdateQuantity(item, item.quantity + 1)"
+                      ></v-btn>
+                    </div>
                     <v-btn
                       icon="mdi-delete"
                       color="error"
                       variant="text"
                       size="small"
-                      class="ml-2"
+                      class="ml-3"
                       :disabled="cartStore.processing"
                       @click="handleRemoveItem(item)"
                     ></v-btn>
@@ -647,6 +656,12 @@ async function handleUpdateQuantity(item: StoreCartItemResult, nextQuantity: num
 function handleQuantityInput(item: StoreCartItemResult, value: string | number) {
   const quantity = Math.floor(Number(value))
   if (!Number.isFinite(quantity) || quantity < 1) {
+    // If invalid input, restore to current quantity (will be handled by v-model)
+    return
+  }
+  // Validate against inventory
+  if (quantity > item.inventoryAvailable) {
+    FastDialog.warningSnackbar(`Maximum quantity is ${item.inventoryAvailable}`)
     return
   }
   handleUpdateQuantity(item, quantity)
@@ -1119,4 +1134,22 @@ async function autoEnterPaymentFlow() {
   }
 }
 </script>
+
+<style scoped>
+.quantity-controls {
+  border: 1px solid rgba(var(--v-theme-primary), 0.3);
+  border-radius: 4px;
+  padding: 2px;
+  background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.quantity-input :deep(.v-field__input) {
+  text-align: center;
+  font-weight: 500;
+}
+
+.quantity-controls .v-btn {
+  min-width: 36px;
+}
+</style>
 
