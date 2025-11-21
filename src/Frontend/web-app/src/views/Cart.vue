@@ -72,7 +72,7 @@
                   <template #prepend>
                     <v-avatar size="64" rounded="lg" class="mr-4">
                       <v-img
-                        :src="resolveProductImage(item)"
+                        :src="resolveProductImageForCart(item)"
                         cover
                         class="bg-grey-darken-3"
                       >
@@ -272,7 +272,7 @@
                 <template #prepend>
                   <v-avatar size="64" rounded="lg" class="mr-4">
                     <v-img
-                      :src="resolveProductImage(item)"
+                      :src="resolveProductImageForCart(item)"
                       cover
                       class="bg-grey-darken-3"
                     >
@@ -414,6 +414,167 @@
             </v-btn>
           </v-card-actions>
         </v-card>
+
+        <!-- Product List Section -->
+        <v-card class="primary-border mt-4" variant="outlined">
+          <v-card-title class="d-flex align-center">
+            <v-icon icon="mdi-store" class="mr-2" color="primary"></v-icon>
+            <span>Add More Products</span>
+            <v-spacer></v-spacer>
+            <v-btn
+              icon
+              size="small"
+              variant="text"
+              @click="showProductList = !showProductList"
+            >
+              <v-icon>{{ showProductList ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+            </v-btn>
+          </v-card-title>
+          <v-expand-transition>
+            <div v-show="showProductList">
+              <v-divider></v-divider>
+              <v-card-text>
+                <!-- Product Loading -->
+                <div v-if="productListLoading" class="text-center py-8">
+                  <v-progress-circular indeterminate color="primary"></v-progress-circular>
+                  <div class="text-body-2 text-grey-lighten-1 mt-2">Loading products...</div>
+                </div>
+
+                <!-- Product Grid -->
+                <v-row v-else-if="productList.length > 0" dense>
+                  <v-col
+                    v-for="product in productList"
+                    :key="product.productId"
+                    cols="12"
+                    sm="6"
+                    md="4"
+                  >
+                    <v-card
+                      variant="outlined"
+                      class="product-card"
+                      :class="{ 'product-in-cart': isProductInCart(product.productId) }"
+                    >
+                      <v-img
+                        :src="resolveProductImage(product)"
+                        height="120"
+                        cover
+                        class="bg-grey-darken-3"
+                        @click="viewProductDetail(product.productId)"
+                        style="cursor: pointer;"
+                      >
+                        <template v-slot:placeholder>
+                          <div class="d-flex align-center justify-center fill-height">
+                            <v-icon color="grey">mdi-image</v-icon>
+                          </div>
+                        </template>
+                      </v-img>
+                      <v-card-text class="pa-3">
+                        <div class="text-subtitle-2 font-weight-medium mb-1" style="min-height: 40px;">
+                          {{ product.name }}
+                        </div>
+                        <div class="text-body-2 text-primary font-weight-bold mb-2">
+                          {{ Filter.formatPrice(product.price) }} {{ product.currency }}
+                        </div>
+                        <div class="d-flex align-center">
+                          <v-chip
+                            v-if="product.inventoryAvailable > 0"
+                            size="x-small"
+                            color="success"
+                            variant="tonal"
+                          >
+                            Stock: {{ product.inventoryAvailable }}
+                          </v-chip>
+                          <v-chip
+                            v-else
+                            size="x-small"
+                            color="error"
+                            variant="tonal"
+                          >
+                            Out of Stock
+                          </v-chip>
+                        </div>
+                      </v-card-text>
+                      <v-card-actions class="pa-3 pt-0">
+                        <!-- If product is in cart, show quantity controls -->
+                        <template v-if="isProductInCart(product.productId)">
+                          <div class="d-flex align-center w-100">
+                            <v-btn
+                              icon="mdi-minus"
+                              variant="outlined"
+                              size="small"
+                              color="primary"
+                              :disabled="cartStore.processing || getCartItemQuantity(product.productId) <= 1"
+                              @click="decreaseProductQuantity(product)"
+                            ></v-btn>
+                            <v-text-field
+                              class="mx-2 quantity-input"
+                              style="max-width: 70px"
+                              type="number"
+                              density="compact"
+                              variant="outlined"
+                              hide-details
+                              :model-value="getCartItemQuantity(product.productId)"
+                              :disabled="cartStore.processing || product.inventoryAvailable <= 0"
+                              :min="1"
+                              :max="product.inventoryAvailable"
+                              @update:model-value="(value: number) => updateProductQuantity(product, value)"
+                            />
+                            <v-btn
+                              icon="mdi-plus"
+                              variant="outlined"
+                              size="small"
+                              color="primary"
+                              :disabled="cartStore.processing || getCartItemQuantity(product.productId) >= product.inventoryAvailable"
+                              @click="increaseProductQuantity(product)"
+                            ></v-btn>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              icon="mdi-delete"
+                              color="error"
+                              variant="text"
+                              size="small"
+                              :disabled="cartStore.processing"
+                              @click="removeProductFromCart(product)"
+                            ></v-btn>
+                          </div>
+                        </template>
+                        <!-- If product is not in cart, show add button -->
+                        <v-btn
+                          v-else
+                          color="primary"
+                          variant="flat"
+                          size="small"
+                          block
+                          :disabled="cartStore.processing || product.inventoryAvailable <= 0"
+                          @click="addProductToCart(product)"
+                        >
+                          <v-icon start size="18">mdi-cart-plus</v-icon>
+                          Add to Cart
+                        </v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-col>
+                </v-row>
+
+                <!-- Empty Product List -->
+                <div v-else class="text-center py-8">
+                  <v-icon size="64" color="grey">mdi-package-variant</v-icon>
+                  <div class="text-body-1 text-grey-lighten-1 mt-2">No products available</div>
+                </div>
+
+                <!-- Pagination -->
+                <v-pagination
+                  v-if="productTotalPages > 1"
+                  v-model="productPage"
+                  :length="productTotalPages"
+                  :total-visible="5"
+                  class="mt-4"
+                  @update:model-value="loadProducts"
+                ></v-pagination>
+              </v-card-text>
+            </div>
+          </v-expand-transition>
+        </v-card>
       </template>
 
       <!-- Order Payment Dialog -->
@@ -480,12 +641,15 @@ import { useUserStore } from '@/store/user'
 import { useWalletStore } from '@/store/wallet'
 import OrderPaymentDialog from '@/components/OrderPaymentDialog.vue'
 import PaymentMethodSelector from '@/components/PaymentMethodSelector.vue'
+import { fetchProductList } from '@/services/storeApi'
 import type {
   StoreCartItemResult,
   StoreOrderDetailResult,
   StoreOrderStatus,
   StorePaymentMode,
-  StorePaymentStatus
+  StorePaymentStatus,
+  StoreProductSummaryResult,
+  StoreProductListResult
 } from '@/types'
 
 const router = useRouter()
@@ -510,6 +674,18 @@ const initialPaymentMode = computed(() => {
 const selectedPaymentMode = ref<StorePaymentMode>(initialPaymentMode.value)
 
 const userUid = computed(() => userStore.state.userInfo?.uid ?? null)
+
+// Product list for adding to cart
+const showProductList = ref(false)
+const productList = ref<StoreProductSummaryResult[]>([])
+const productListLoading = ref(false)
+const productPage = ref(1)
+const productPageSize = ref(6)
+const productTotal = ref(0)
+const productTotalPages = computed(() => {
+  const total = Math.ceil(productTotal.value / productPageSize.value)
+  return total > 0 ? total : 1
+})
 
 // Temporary cart for unauthenticated users
 const temporaryCartItems = ref<Array<{ productId: number; quantity: number; product?: any }>>([])
@@ -583,9 +759,37 @@ const cartCurrency = computed(() => cartItems.value[0]?.currency ?? 'USDT')
 
 const apiBaseUrl = WebApi.getInstance().baseUrl ?? ''
 
-function resolveProductImage(item: StoreCartItemResult) {
-  // Cart items may not have image URL, use placeholder
+// Product image resolver for cart items
+function resolveProductImageForCart(item: StoreCartItemResult) {
+  if (item.thumbnailUrl) {
+    if (item.thumbnailUrl.startsWith('http')) {
+      return item.thumbnailUrl
+    }
+    if (apiBaseUrl) {
+      const normalizedBase = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl
+      const normalizedPath = item.thumbnailUrl.startsWith('/') ? item.thumbnailUrl : `/${item.thumbnailUrl}`
+      return `${normalizedBase}${normalizedPath}`
+    }
+    return item.thumbnailUrl
+  }
   return productPlaceholderImage
+}
+
+// Product image resolver for product list
+function resolveProductImage(product: StoreProductSummaryResult | StoreCartItemResult) {
+  const url = 'thumbnailUrl' in product ? product.thumbnailUrl : (product as StoreCartItemResult).thumbnailUrl
+  if (!url) {
+    return productPlaceholderImage
+  }
+  if (url.startsWith('http')) {
+    return url
+  }
+  if (apiBaseUrl) {
+    const normalizedBase = apiBaseUrl.endsWith('/') ? apiBaseUrl.slice(0, -1) : apiBaseUrl
+    const normalizedPath = url.startsWith('/') ? url : `/${url}`
+    return `${normalizedBase}${normalizedPath}`
+  }
+  return url
 }
 
 function goBack() {
@@ -1041,6 +1245,9 @@ onBeforeMount(async () => {
     // Not logged in, load temporary cart
     await loadTemporaryCartItems()
   }
+  
+  // Load product list when product list section is expanded
+  // We'll load it on first expansion to save resources
 })
 
 /**
@@ -1133,6 +1340,151 @@ async function autoEnterPaymentFlow() {
     await handlePlaceOrder()
   }
 }
+
+// Load products
+async function loadProducts() {
+  productListLoading.value = true
+  try {
+    const result: StoreProductListResult = await fetchProductList({
+      page: productPage.value,
+      pageSize: productPageSize.value
+    })
+    productList.value = result.items || []
+    productTotal.value = result.totalCount || 0
+  } catch (error) {
+    console.error('Failed to load products:', error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to load products')
+    productList.value = []
+    productTotal.value = 0
+  } finally {
+    productListLoading.value = false
+  }
+}
+
+// Check if product is in cart
+function isProductInCart(productId: number): boolean {
+  return cartItems.value.some(item => item.productId === productId)
+}
+
+// Get cart item quantity for a product
+function getCartItemQuantity(productId: number): number {
+  const item = cartItems.value.find(item => item.productId === productId)
+  return item?.quantity ?? 0
+}
+
+// Add product to cart
+async function addProductToCart(product: StoreProductSummaryResult) {
+  const uid = userUid.value
+  if (!uid) {
+    // Add to temporary cart
+    const { addToTemporaryCart } = await import('@/utils/temporaryCart')
+    addToTemporaryCart(product, 1)
+    await loadTemporaryCartItems()
+    FastDialog.successSnackbar('Added to cart')
+    return
+  }
+  try {
+    await cartStore.addItem(uid, product.productId, 1)
+    FastDialog.successSnackbar('Added to cart')
+  } catch (error) {
+    console.warn(error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to add to cart')
+  }
+}
+
+// Increase product quantity
+async function increaseProductQuantity(product: StoreProductSummaryResult) {
+  const currentQuantity = getCartItemQuantity(product.productId)
+  if (currentQuantity >= product.inventoryAvailable) {
+    FastDialog.warningSnackbar(`Maximum quantity is ${product.inventoryAvailable}`)
+    return
+  }
+  await updateProductQuantity(product, currentQuantity + 1)
+}
+
+// Decrease product quantity
+async function decreaseProductQuantity(product: StoreProductSummaryResult) {
+  const currentQuantity = getCartItemQuantity(product.productId)
+  if (currentQuantity <= 1) {
+    await removeProductFromCart(product)
+    return
+  }
+  await updateProductQuantity(product, currentQuantity - 1)
+}
+
+// Update product quantity
+async function updateProductQuantity(product: StoreProductSummaryResult, quantity: number) {
+  const quantityNum = Math.floor(Number(quantity))
+  if (!Number.isFinite(quantityNum) || quantityNum < 1) {
+    return
+  }
+  if (quantityNum > product.inventoryAvailable) {
+    FastDialog.warningSnackbar(`Maximum quantity is ${product.inventoryAvailable}`)
+    return
+  }
+  
+  const uid = userUid.value
+  if (!uid) {
+    // Update temporary cart
+    const { updateTemporaryCartItem } = await import('@/utils/temporaryCart')
+    updateTemporaryCartItem(product.productId, quantityNum)
+    await loadTemporaryCartItems()
+    return
+  }
+  
+  const cartItem = cartItems.value.find(item => item.productId === product.productId)
+  if (!cartItem) {
+    // If not in cart, add it
+    await addProductToCart(product)
+    return
+  }
+  
+  try {
+    await cartStore.updateItem(uid, cartItem.cartItemId, quantityNum)
+  } catch (error) {
+    console.warn(error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to update quantity')
+  }
+}
+
+// Remove product from cart
+async function removeProductFromCart(product: StoreProductSummaryResult) {
+  const uid = userUid.value
+  if (!uid) {
+    // Remove from temporary cart
+    const { removeTemporaryCartItem } = await import('@/utils/temporaryCart')
+    removeTemporaryCartItem(product.productId)
+    await loadTemporaryCartItems()
+    FastDialog.successSnackbar('Item removed')
+    return
+  }
+  
+  const cartItem = cartItems.value.find(item => item.productId === product.productId)
+  if (!cartItem) {
+    return
+  }
+  
+  try {
+    await cartStore.removeItem(uid, cartItem.cartItemId)
+    FastDialog.successSnackbar('Item removed')
+  } catch (error) {
+    console.warn(error)
+    FastDialog.errorSnackbar((error as Error).message ?? 'Failed to remove item')
+  }
+}
+
+// View product detail
+function viewProductDetail(productId: number) {
+  router.push({ name: 'ProductDetail', params: { productId } })
+}
+
+// Toggle product list and load if needed
+async function toggleProductList() {
+  showProductList.value = !showProductList.value
+  if (showProductList.value && productList.value.length === 0 && !productListLoading.value) {
+    await loadProducts()
+  }
+}
 </script>
 
 <style scoped>
@@ -1150,6 +1502,25 @@ async function autoEnterPaymentFlow() {
 
 .quantity-controls .v-btn {
   min-width: 36px;
+}
+
+.product-card {
+  transition: all 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-in-cart {
+  border-color: rgb(var(--v-theme-primary));
+  background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.product-card .quantity-input :deep(.v-field__input) {
+  text-align: center;
+  font-weight: 500;
 }
 </style>
 
