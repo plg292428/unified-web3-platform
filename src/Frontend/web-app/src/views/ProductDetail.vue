@@ -84,16 +84,56 @@
           <v-divider></v-divider>
 
           <v-card-actions class="pa-4">
+            <!-- Quantity Selector -->
+            <div class="d-flex align-center mb-4 w-100">
+              <span class="text-body-2 mr-4">Quantity:</span>
+              <div class="d-flex align-center quantity-controls">
+                <v-btn
+                  icon="mdi-minus"
+                  variant="outlined"
+                  size="small"
+                  color="primary"
+                  :disabled="quantity <= 1 || product.inventoryAvailable <= 0"
+                  @click="decreaseQuantity"
+                ></v-btn>
+                <v-text-field
+                  class="mx-2 quantity-input"
+                  style="max-width: 100px"
+                  type="number"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  :model-value="quantity"
+                  :disabled="product.inventoryAvailable <= 0"
+                  :min="1"
+                  :max="product.inventoryAvailable"
+                  @update:model-value="handleQuantityInput"
+                />
+                <v-btn
+                  icon="mdi-plus"
+                  variant="outlined"
+                  size="small"
+                  color="primary"
+                  :disabled="quantity >= product.inventoryAvailable || product.inventoryAvailable <= 0"
+                  @click="increaseQuantity"
+                ></v-btn>
+              </div>
+              <v-spacer></v-spacer>
+              <span class="text-caption text-grey-lighten-1">
+                Max: {{ product.inventoryAvailable }}
+              </span>
+            </div>
+
             <v-btn
               color="primary"
               size="large"
               block
               append-icon="mdi-cart-plus"
               :loading="cartProcessing"
-              :disabled="product.inventoryAvailable <= 0"
+              :disabled="product.inventoryAvailable <= 0 || quantity <= 0"
               @click="handleAddToCart"
             >
-              Add to Cart
+              Add to Cart ({{ quantity }})
             </v-btn>
             <v-btn
               color="success"
@@ -102,10 +142,10 @@
               class="mt-2"
               append-icon="mdi-credit-card"
               :loading="buyingNow"
-              :disabled="product.inventoryAvailable <= 0"
+              :disabled="product.inventoryAvailable <= 0 || quantity <= 0"
               @click="handleBuyNow"
             >
-              Buy Now
+              Buy Now ({{ quantity }})
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -256,6 +296,9 @@ const orderSuccessDetail = ref<StoreOrderDetailResult | null>(null)
 
 const userUid = computed(() => userStore.state.userInfo?.uid ?? null)
 
+// Quantity selector
+const quantity = ref(1)
+
 const apiBaseUrl = WebApi.getInstance().baseUrl ?? ''
 
 function resolveProductImage(product: StoreProductDetailResult) {
@@ -305,6 +348,33 @@ async function loadProduct() {
   }
 }
 
+// Quantity control functions
+function increaseQuantity() {
+  if (product.value && quantity.value < product.value.inventoryAvailable) {
+    quantity.value++
+  }
+}
+
+function decreaseQuantity() {
+  if (quantity.value > 1) {
+    quantity.value--
+  }
+}
+
+function handleQuantityInput(value: string | number) {
+  const qty = Math.floor(Number(value))
+  if (!Number.isFinite(qty) || qty < 1) {
+    quantity.value = 1
+    return
+  }
+  if (product.value && qty > product.value.inventoryAvailable) {
+    FastDialog.warningSnackbar(`Maximum quantity is ${product.value.inventoryAvailable}`)
+    quantity.value = product.value.inventoryAvailable
+    return
+  }
+  quantity.value = qty
+}
+
 async function handleAddToCart() {
   if (!product.value) {
     return
@@ -315,19 +385,33 @@ async function handleAddToCart() {
     return
   }
 
+  if (quantity.value <= 0) {
+    FastDialog.warningSnackbar('Please select a valid quantity.')
+    return
+  }
+
+  if (quantity.value > product.value.inventoryAvailable) {
+    FastDialog.warningSnackbar(`Maximum quantity is ${product.value.inventoryAvailable}`)
+    quantity.value = product.value.inventoryAvailable
+    return
+  }
+
   const uid = userUid.value
   if (!uid) {
     // Not logged in, add to temporary cart
     const { addToTemporaryCart, getTemporaryCartTotalQuantity } = await import('@/utils/temporaryCart')
-    addToTemporaryCart(product.value.productId, 1)
+    // Add multiple times if quantity > 1
+    for (let i = 0; i < quantity.value; i++) {
+      addToTemporaryCart(product.value.productId, 1)
+    }
     const totalQuantity = getTemporaryCartTotalQuantity()
-    FastDialog.successSnackbar(`Added to cart (${totalQuantity} items). Connect wallet to checkout.`)
+    FastDialog.successSnackbar(`Added ${quantity.value} item(s) to cart (${totalQuantity} total). Connect wallet to checkout.`)
     return
   }
 
   try {
-    await cartStore.addItem(uid, product.value.productId, 1)
-    FastDialog.successSnackbar('Added to cart')
+    await cartStore.addItem(uid, product.value.productId, quantity.value)
+    FastDialog.successSnackbar(`Added ${quantity.value} item(s) to cart`)
   } catch (error) {
     console.warn(error)
     FastDialog.errorSnackbar((error as Error).message ?? 'Failed to add to cart')
@@ -449,10 +533,21 @@ async function proceedBuyNow(uid: number) {
     return
   }
 
+  if (quantity.value <= 0) {
+    FastDialog.warningSnackbar('Please select a valid quantity.')
+    return
+  }
+
+  if (quantity.value > product.value.inventoryAvailable) {
+    FastDialog.warningSnackbar(`Maximum quantity is ${product.value.inventoryAvailable}`)
+    quantity.value = product.value.inventoryAvailable
+    return
+  }
+
   buyingNow.value = true
   try {
-    // 1. First add product to cart
-    await cartStore.addItem(uid, product.value.productId, 1)
+    // 1. First add product to cart with selected quantity
+    await cartStore.addItem(uid, product.value.productId, quantity.value)
     
     // 2. Determine payment method (prefer Web3 if available)
     const walletState = walletStore.state
@@ -562,6 +657,9 @@ function getPaymentStatusText(status: StorePaymentStatus): string {
 onBeforeMount(async () => {
   await loadProduct()
   
+  // Reset quantity when product loads
+  quantity.value = 1
+  
   // Check if there is auto-buy parameter (when returning from wallet registration page)
   const autoBuy = route.query.autoBuy === 'true'
   if (autoBuy && product.value && userUid.value) {
@@ -572,4 +670,22 @@ onBeforeMount(async () => {
   }
 })
 </script>
+
+<style scoped>
+.quantity-controls {
+  border: 1px solid rgba(var(--v-theme-primary), 0.3);
+  border-radius: 4px;
+  padding: 2px;
+  background-color: rgba(var(--v-theme-primary), 0.05);
+}
+
+.quantity-input :deep(.v-field__input) {
+  text-align: center;
+  font-weight: 500;
+}
+
+.quantity-controls .v-btn {
+  min-width: 36px;
+}
+</style>
 
